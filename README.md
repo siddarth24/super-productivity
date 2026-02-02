@@ -20,11 +20,6 @@
 </p>
 <br>
 
-<p align="center">
-      <img src="https://repobeats.axiom.co/api/embed/61f9b9de1bc34a2b526faf6d356120bdae7f4249.svg" alt="analytics" />
-</p>
-
-<br>
 <br>
 
 <p align="center">
