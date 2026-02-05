@@ -28,13 +28,8 @@ import { PluginBridgeService } from '../../plugins/plugin-bridge.service';
 import { PluginService } from '../../plugins/plugin.service';
 import { lsGetBoolean, lsSetItem } from '../../util/ls-util';
 import { MenuTreeService } from '../../features/menu-tree/menu-tree.service';
-import { Router } from '@angular/router';
-import {
-  MenuTreeKind,
-  MenuTreeViewNode,
-} from '../../features/menu-tree/store/menu-tree.model';
+import { MenuTreeViewNode } from '../../features/menu-tree/store/menu-tree.model';
 import { GlobalConfigService } from '../../features/config/global-config.service';
-import { IS_IOS_NATIVE } from '../../util/is-native-platform';
 
 @Injectable({
   providedIn: 'root',
@@ -49,7 +44,6 @@ export class MagicNavConfigService {
   private readonly _pluginService = inject(PluginService);
   private readonly _menuTreeService = inject(MenuTreeService);
   private readonly _configService = inject(GlobalConfigService);
-  private readonly _router = inject(Router);
 
   // Simple state signals
   private readonly _isProjectsExpanded = signal(
@@ -136,178 +130,8 @@ export class MagicNavConfigService {
       // Plugin entries
       ...this._buildPluginItems(),
 
-      // Separator
-      { type: 'separator', id: 'sep-2' },
-
-      // Projects Section
-      {
-        type: 'tree',
-        id: 'projects',
-        label: T.MH.PROJECTS,
-        icon: 'expand_more',
-        treeKind: MenuTreeKind.PROJECT,
-        tree:
-          this._projectNavTree().length > 0
-            ? this._projectNavTree()
-            : this._visibleProjects().map((project) => ({
-                k: MenuTreeKind.PROJECT,
-                project,
-              })),
-        action: () => this._toggleProjectsExpanded(),
-        additionalButtons: [
-          {
-            id: 'project-visibility',
-            icon: 'visibility',
-            tooltip: T.F.PROJECT_FOLDER.TOOLTIP_VISIBILITY,
-            action: () => this._openProjectVisibilityMenu(),
-          },
-          {
-            id: 'add-project-folder',
-            icon: 'create_new_folder',
-            tooltip: T.F.PROJECT_FOLDER.TOOLTIP_CREATE,
-            action: () => this._openCreateProjectFolder(),
-          },
-          {
-            id: 'add-project',
-            icon: 'add',
-            tooltip: T.MH.CREATE_PROJECT,
-            action: () => this._openCreateProject(),
-          },
-        ],
-      },
-
-      // Tags Section
-      {
-        type: 'tree',
-        id: 'tags',
-        label: T.MH.TAGS,
-        icon: 'expand_more',
-        treeKind: MenuTreeKind.TAG,
-        tree:
-          this._tagNavTree().length > 0
-            ? this._tagNavTree()
-            : this._tags().map((tag) => ({
-                k: MenuTreeKind.TAG,
-                tag,
-              })),
-        action: () => this._toggleTagsExpanded(),
-        additionalButtons: [
-          {
-            id: 'add-tag-folder',
-            icon: 'create_new_folder',
-            tooltip: T.F.TAG_FOLDER.TOOLTIP_CREATE,
-            action: () => this._openCreateTagFolder(),
-          },
-          {
-            id: 'add-tag',
-            icon: 'add',
-            tooltip: T.MH.CREATE_TAG,
-            action: () => this._createNewTag(),
-          },
-        ],
-      },
-
-      // Separator
+      // Separator before settings (pushes settings to bottom)
       { type: 'separator', id: 'sep-3', mtAuto: true },
-
-      // App Section
-      {
-        type: 'route',
-        id: 'search',
-        label: T.MH.SEARCH,
-        icon: 'search',
-        route: '/search',
-      },
-      {
-        type: 'route',
-        id: 'scheduled-list',
-        label: T.MH.ALL_PLANNED_LIST,
-        icon: 'list',
-        route: '/scheduled-list',
-      },
-
-      // Help Menu (rendered as mat-menu)
-      // Not allowed to display donation stuff on iOS per App Store guidelines
-      ...(this.isDonatePageEnabled() && !IS_IOS_NATIVE
-        ? [
-            {
-              type: 'route',
-              id: 'donate',
-              label: T.MH.DONATE,
-              icon: 'favorite',
-              route: '/donate',
-            } as NavItem,
-          ]
-        : []),
-      {
-        type: 'menu',
-        id: 'help',
-        label: T.MH.HELP,
-        icon: 'help_center',
-        children: [
-          {
-            type: 'href',
-            id: 'help-online',
-            label: T.MH.HM.GET_HELP_ONLINE,
-            icon: 'help_center',
-            href: 'https://github.com/super-productivity/super-productivity/blob/master/README.md#question-how-to-use-it',
-          },
-          {
-            type: 'action',
-            id: 'help-report',
-            label: T.MH.HM.REPORT_A_PROBLEM,
-            icon: 'bug_report',
-            action: () => this._openBugReport(),
-          },
-          // Not allowed to display donation stuff on iOS per App Store guidelines
-          ...(!IS_IOS_NATIVE
-            ? [
-                {
-                  type: 'href' as const,
-                  id: 'help-contribute',
-                  label: T.MH.HM.CONTRIBUTE,
-                  icon: 'volunteer_activism',
-                  href: 'https://github.com/super-productivity/super-productivity/blob/master/CONTRIBUTING.md',
-                },
-              ]
-            : []),
-          {
-            type: 'href',
-            id: 'help-reddit',
-            label: T.MH.HM.REDDIT_COMMUNITY,
-            icon: 'forum',
-            href: 'https://www.reddit.com/r/superProductivity/',
-          },
-          {
-            type: 'action',
-            id: 'tour-welcome',
-            label: T.MH.HM.START_WELCOME,
-            icon: 'directions',
-            action: () => this._startTour(TourId.Welcome),
-          },
-          {
-            type: 'action',
-            id: 'tour-keyboard',
-            label: T.MH.HM.KEYBOARD,
-            icon: 'directions',
-            action: () => this._startTour(TourId.KeyboardNav),
-          },
-          {
-            type: 'action',
-            id: 'tour-sync',
-            label: T.MH.HM.SYNC,
-            icon: 'directions',
-            action: () => this._startTour(TourId.Sync),
-          },
-          {
-            type: 'action',
-            id: 'tour-calendars',
-            label: T.MH.HM.CALENDARS,
-            icon: 'directions',
-            action: () => this._startTour(TourId.IssueProviders),
-          },
-        ],
-      },
 
       {
         type: 'route',
@@ -318,15 +142,15 @@ export class MagicNavConfigService {
         tourClass: 'tour-settingsMenuBtn',
       },
     ],
-    fullModeByDefault: true,
-    showLabels: true,
+    fullModeByDefault: false,
+    showLabels: false,
     mobileBreakpoint: 600,
-    resizable: true,
-    minWidth: 190,
-    maxWidth: 400,
-    defaultWidth: 260,
-    collapseThreshold: 150,
-    expandThreshold: 180,
+    resizable: false,
+    minWidth: 72,
+    maxWidth: 72,
+    defaultWidth: 72,
+    collapseThreshold: 64,
+    expandThreshold: 80,
   }));
 
   // Simple action handler
@@ -483,14 +307,7 @@ export class MagicNavConfigService {
 
   // Simple action handlers
   private _openCreateProject(): void {
-    this._matDialog
-      .open(DialogCreateProjectComponent, { restoreFocus: true })
-      .afterClosed()
-      .subscribe((newProjectId: string | undefined) => {
-        if (newProjectId) {
-          this._router.navigate([`project/${newProjectId}/tasks`]);
-        }
-      });
+    this._matDialog.open(DialogCreateProjectComponent, { restoreFocus: true });
   }
 
   private _openCreateProjectFolder(): void {

@@ -1,389 +1,1163 @@
 @use '../../../../styles/_globals.scss' as *;
 
+// ============================================
+// Dark Neumorphism - Matching Sidebar Design
+// ============================================
+
 :host {
+  @include neo-variables;
+
+  // Layout constants used to keep header/pills aligned
+  --ht-streak-col-w: 84px;
+
+  --font-habit-tracker: 'NovaMono';
+
+  // Exact match with sidebar neumorphism palette
+  // Unify surfaces with the surrounding shell background so pills/buttons
+  // look like they emerge from the same canvas.
+  --neo-bg: var(--bg-slightly-lighter, var(--bg));
+  --neo-bg-card: var(--neo-bg);
+  --neo-bg-elevated: var(--neo-bg);
+  --neo-shadow-dark: #0a0a0a;
+  --neo-shadow-light: #2a2a2a;
+
+  // Better text contrast hierarchy
+  --neo-text-primary: rgba(255, 255, 255, 0.95);
+  --neo-text-secondary: rgba(255, 255, 255, 0.65);
+  --neo-text-muted: rgba(255, 255, 255, 0.4);
+
+  // Icon states (matching sidebar)
+  --neo-icon-color: #6b6b6b;
+  --neo-icon-hover: #8a8a8a;
+  --neo-icon-active: #ffffff;
+
+  // Animations
+  --neo-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --neo-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --neo-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --neo-duration: 200ms;
+  --neo-duration-slow: 350ms;
+
+  // Matching sidebar shadow system
+  // Derive shadow colors from the surface background so the neumorphism reads
+  // consistently even when the surrounding canvas/background changes.
+  --ht-surface-bg: var(--neo-bg-card);
+  --ht-shadow-dark: color-mix(in srgb, #000 70%, var(--ht-surface-bg));
+  --ht-shadow-light: color-mix(in srgb, #fff 10%, var(--ht-surface-bg));
+
+  --shadow-raised:
+    6px 6px 18px -8px var(--ht-shadow-dark), -6px -6px 18px -8px var(--ht-shadow-light);
+  --shadow-raised-strong:
+    12px 12px 30px -10px var(--ht-shadow-dark),
+    -12px -12px 30px -10px var(--ht-shadow-light);
+  --shadow-pressed:
+    inset 4px 4px 12px -8px var(--ht-shadow-dark),
+    inset -4px -4px 12px -8px var(--ht-shadow-light);
+  --shadow-glow: 0 0 24px
+    color-mix(in srgb, var(--habit-accent, var(--neo-accent-blue)) 50%, transparent);
+
+  // Radius to match sidebar
+  --neo-radius: 14px;
+
+  // Font for all text in habit tracker
+  --font-numeric: var(--font-habit-tracker);
+
+  font-family: var(--font-habit-tracker);
+
   display: flex;
   justify-content: center;
-  overflow-x: auto;
-  padding: 8px;
+  padding: 0;
+  min-height: 100%;
+  background: transparent;
 }
 
+// ============================================
+// Main Container
+// ============================================
 .habit-tracker-container {
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 800px;
+  // Leave room for the separate streak pill without squeezing the main pill
+  max-width: 1020px;
   margin: 0 auto;
+  gap: 32px;
+  padding: 36px 24px 110px;
+
+  font-family: inherit;
+  text-transform: lowercase;
 }
 
+// ============================================
+// Navigation Bar
+// ============================================
 .navigation-bar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px 8px;
-  margin-bottom: 16px;
-  padding: 0 4px;
-
-  @media (max-width: 600px) {
-    margin-bottom: 12px;
-  }
-
-  [mat-icon-button] {
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-
-    &:hover {
-      opacity: 1;
-    }
-  }
+  justify-content: space-between;
+  gap: 18px;
+  padding: 6px 0;
 }
 
-.nav-controls {
+.nav-left {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.range-label {
-  font-size: 14px;
-  font-weight: 500;
-  min-width: 120px;
-  text-align: center;
-  opacity: 0.8;
-}
-
-.today-btn {
-  font-size: 13px;
-  opacity: 0.8;
-}
-
-.add-habit-btn {
-  font-size: 13px;
-  margin-left: 8px;
-
-  mat-icon {
-    margin-right: 4px;
-  }
-}
-
-.habit-grid {
+.nav-right {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.date-range {
+  font-family: var(--font-numeric);
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
+  color: var(--neo-text-primary);
+  text-align: center;
+  padding: 2px 14px;
   width: 100%;
 }
 
-.header-row {
-  display: flex;
-  margin-bottom: 4px;
-  align-items: flex-end;
+.date-range-anim {
+  position: relative;
+  display: inline-grid;
+  align-items: center;
+  justify-items: center;
+  // Keep navigation stable when the label length changes
+  inline-size: clamp(200px, 26vw, 240px);
 }
 
-.habit-label {
-  flex: 0 0 40px;
-  width: 40px;
+.date-range-anim.is-transitioning {
+  .date-range {
+    grid-area: 1 / 1;
+    will-change: transform, opacity;
+    transition:
+      transform 520ms var(--neo-ease-out),
+      opacity 520ms var(--neo-ease-out);
+  }
+
+  .date-range.is-old {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  &.dir-next .date-range.is-new {
+    opacity: 0;
+    transform: translate3d(10px, 0, 0);
+  }
+
+  &.dir-prev .date-range.is-new {
+    opacity: 0;
+    transform: translate3d(-10px, 0, 0);
+  }
+
+  &.is-animating.dir-next {
+    .date-range.is-old {
+      opacity: 0;
+      transform: translate3d(-10px, 0, 0);
+    }
+
+    .date-range.is-new {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  &.is-animating.dir-prev {
+    .date-range.is-old {
+      opacity: 0;
+      transform: translate3d(10px, 0, 0);
+    }
+
+    .date-range.is-new {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+}
+
+// ============================================
+// Week Transition
+// ============================================
+.habit-grid {
+  display: grid;
+  grid-template-areas: 'stack';
+}
+
+.habit-grid.is-transitioning {
+  pointer-events: none;
+  user-select: none;
+}
+
+.habit-grid > .week-view {
+  grid-area: stack;
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+  will-change: transform, opacity;
+  transition:
+    transform 520ms var(--neo-ease-out),
+    opacity 520ms var(--neo-ease-out);
+}
+
+.habit-grid.is-transitioning.dir-next > .week-view.is-next {
+  transform: translate3d(26px, 0, 0);
+  opacity: 0;
+}
+
+.habit-grid.is-transitioning.dir-prev > .week-view.is-next {
+  transform: translate3d(-26px, 0, 0);
+  opacity: 0;
+}
+
+.habit-grid.is-transitioning.is-animating.dir-next > .week-view.is-current {
+  transform: translate3d(-26px, 0, 0);
+  opacity: 0;
+}
+
+.habit-grid.is-transitioning.is-animating.dir-next > .week-view.is-next {
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+}
+
+.habit-grid.is-transitioning.is-animating.dir-prev > .week-view.is-current {
+  transform: translate3d(26px, 0, 0);
+  opacity: 0;
+}
+
+.habit-grid.is-transitioning.is-animating.dir-prev > .week-view.is-next {
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+}
+
+// ============================================
+// Buttons - Matching sidebar neumorphic style
+// ============================================
+.neo-btn {
+  background: var(--neo-bg);
+  border: none;
+  border-radius: var(--neo-radius);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: inherit;
+  font-weight: inherit;
+  text-transform: inherit;
+  color: var(--neo-icon-color);
+  outline: none;
+  box-shadow: none;
+  transition:
+    transform 180ms var(--neo-ease),
+    background 180ms var(--neo-ease),
+    color 180ms var(--neo-ease),
+    box-shadow 180ms var(--neo-ease);
 
-  &.compact {
-    // Match the habit-title compact width (3 columns)
-    flex: 3 1 0px;
-    min-width: 90px;
-    max-width: 300px;
-    justify-content: flex-start;
-    padding: 0 8px;
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: inherit;
   }
+
+  &:hover:not(:disabled) {
+    color: var(--neo-icon-hover);
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+    box-shadow: var(--shadow-pressed);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  &.active {
+    background: var(--neo-bg);
+    color: var(--neo-icon-active);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--shadow-raised);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(92, 154, 255, 0.3);
+    outline-offset: 2px;
+  }
+}
+
+.nav-btn {
+  width: 44px;
+  height: 44px;
+}
+
+.icon-btn {
+  padding: 10px 16px;
+  height: 42px;
+  background: var(--neo-bg-card);
+  box-shadow: var(--shadow-raised);
+  color: var(--neo-text-muted);
+
+  &:hover:not(:disabled) {
+    color: var(--neo-icon-active);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-raised-strong);
+  }
+}
+
+.today-btn {
+  padding: 11px 18px;
+  height: 44px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  text-transform: lowercase;
+  letter-spacing: 0.2px;
+  color: var(--neo-text-muted);
+  background: var(--neo-bg-card);
+  box-shadow: var(--shadow-raised);
+  will-change: transform;
+  transition:
+    transform 240ms var(--neo-ease-out),
+    box-shadow 240ms var(--neo-ease-out),
+    color 200ms var(--neo-ease),
+    opacity 240ms var(--neo-ease-out);
+
+  &.is-needed {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-raised-strong);
+    color: var(--neo-icon-active);
+    animation: todayBtnIn 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  &:hover:not(:disabled) {
+    color: var(--neo-icon-active);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-raised-strong);
+  }
+}
+
+@keyframes todayBtnIn {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+// ============================================
+// Day Headers
+// ============================================
+.day-headers {
+  display: flex;
+  align-items: flex-end;
+  // Match the pill's horizontal padding so headers align with check circles
+  padding: 0 26px 18px;
+  gap: 8px;
+}
+
+.streak-header-spacer {
+  flex: 0 0 var(--ht-streak-col-w);
+  // Match the gap between habit pill and streak pill (row gap is 16px, header flex gap is 8px)
+  margin-left: 8px;
+}
+
+.header-spacer {
+  flex: 0 0 200px;
+  min-width: 140px;
+  // Match the pill's label-to-days gap (pill gap: 18px, header gap: 8px)
+  // Note: the flex "gap" already adds 8px between spacer and first day.
+  margin-right: 10px;
 
   @media (max-width: 600px) {
-    flex: 0 0 36px;
-    width: 36px;
-
-    &.compact {
-      flex: 3 1 0px;
-      min-width: 96px;
-      max-width: 300px;
-      padding: 0 6px;
-    }
-  }
-
-  .compact-toggle-btn {
-    opacity: 0.5;
-    transition: opacity 0.2s ease;
-    width: 32px;
-    height: 32px;
-
-    &:hover {
-      opacity: 1;
-    }
-
-    mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-    }
+    flex: 0 0 110px;
+    min-width: 90px;
+    // On mobile the pill gap is 14px and the header gap stays 8px
+    margin-right: 6px;
   }
 }
 
 .day-header {
-  flex: 1 1 0px;
-  min-width: 30px;
-  max-width: 100px;
-  text-align: center;
-  font-size: 11px;
-  opacity: 0.7;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 9px 4px;
+  border-radius: var(--neo-radius);
+  transition:
+    transform 180ms var(--neo-ease),
+    box-shadow 250ms var(--neo-ease),
+    background 180ms var(--neo-ease);
 
-  @media (max-width: 600px) {
-    min-width: 32px;
-    font-size: 10px;
+  &.is-today {
+    background: var(--neo-bg-card);
+    box-shadow: var(--shadow-raised);
+    transform: translateY(-2px);
+
+    .day-name {
+      color: var(--neo-text-secondary);
+    }
+
+    .day-num {
+      color: var(--neo-accent-blue);
+      font-weight: 700;
+      text-shadow: 0 0 12px color-mix(in srgb, var(--neo-accent-blue) 50%, transparent);
+    }
   }
 
   .day-name {
-    text-transform: uppercase;
-    font-weight: bold;
-    margin-bottom: 2px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    color: var(--neo-text-muted);
   }
 
-  .day-date {
-    font-size: 10px;
-
-    @media (max-width: 600px) {
-      font-size: 9px;
-    }
+  .day-num {
+    font-family: var(--font-numeric);
+    font-size: 17px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--neo-text-secondary);
   }
 }
 
-.habit-row {
+// ============================================
+// Section Headers
+// ============================================
+.habit-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  & + .habit-section {
+    margin-top: 24px;
+  }
+}
+
+.section-header {
   display: flex;
   align-items: center;
-  padding: 8px 0;
+  gap: 8px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--neo-text-secondary);
+  opacity: 0.6;
 
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-
-  @include darkTheme() {
-    border-bottom-color: rgba(255, 255, 255, 0.15);
-  }
-
-  @include lightTheme() {
-    border-bottom-color: rgba(0, 0, 0, 0.15);
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    opacity: 0.8;
   }
 }
 
-.habit-title {
-  flex: 0 0 40px;
-  width: 40px;
+// ============================================
+// Habit Pills
+// ============================================
+.habit-row {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+}
+
+.habit-pill {
+  background: var(--neo-bg-card);
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  padding: 13px 26px;
+  gap: 18px;
+  box-shadow: var(--shadow-raised);
+  transition:
+    transform 180ms var(--neo-ease),
+    box-shadow 250ms var(--neo-ease);
+
+  flex: 1;
+
+  // Hover/active state is handled on the row so both pills move together
+}
+
+.streak-pill {
+  flex: 0 0 var(--ht-streak-col-w);
+  min-width: var(--ht-streak-col-w);
+  background: var(--neo-bg-card);
+  border-radius: 28px;
+  box-shadow: var(--shadow-raised);
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  padding: 9px 12px;
+  transition:
+    transform 180ms var(--neo-ease),
+    box-shadow 250ms var(--neo-ease),
+    opacity 180ms var(--neo-ease);
+
+  &.is-empty {
+    opacity: 0.55;
+  }
+}
+
+.habit-row:hover {
+  .habit-pill,
+  .streak-pill {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-raised-strong);
+  }
+}
+
+.habit-row:active {
+  .habit-pill,
+  .streak-pill {
+    transform: translateY(-1px);
+  }
+}
+
+.habit-info {
+  flex: 0 0 200px;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  gap: 8px;
+  transition: opacity var(--neo-duration) var(--neo-ease);
 
   &:hover {
-    opacity: 0.7;
-  }
-
-  &.compact {
-    // Take up the space of 3 day columns (since we're showing 4 instead of 7)
-    // Each day column is flex: 1 1 0px, so 3 columns = flex: 3 1 0px
-    flex: 3 1 0px;
-    min-width: 90px; // Minimum width for 3 columns
-    max-width: 300px; // Maximum width for 3 columns
-    justify-content: flex-start; // Icons left-aligned, text follows
-    padding: 0 8px;
+    opacity: 0.75;
   }
 
   @media (max-width: 600px) {
-    flex: 0 0 36px;
-    width: 36px;
-
-    &.compact {
-      flex: 3 1 0px;
-      min-width: 96px; // 3 * 32px minimum for mobile
-      max-width: 300px;
-      padding: 0 6px;
-      justify-content: flex-start; // Icons left-aligned, text follows
-    }
+    flex: 0 0 110px;
+    min-width: 90px;
+    gap: 8px;
   }
+}
 
-  .habit-icon {
-    flex-shrink: 0;
-    opacity: 0.7;
-    font-size: 20px;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.habit-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  color: var(--habit-accent, var(--neo-accent-blue));
+  flex-shrink: 0;
+  filter: drop-shadow(
+    0 0 8px
+      color-mix(in srgb, var(--habit-accent, var(--neo-accent-blue)) 30%, transparent)
+  );
+}
 
-    @media (max-width: 600px) {
-      font-size: 18px;
-      width: 22px;
-      height: 22px;
-    }
-  }
+.habit-initial {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  background: linear-gradient(
+    135deg,
+    var(--habit-accent, var(--neo-accent-blue)) 0%,
+    color-mix(in srgb, var(--habit-accent, var(--neo-accent-blue)) 75%, #000) 100%
+  );
+  color: #000;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px
+    color-mix(in srgb, var(--habit-accent, var(--neo-accent-blue)) 40%, transparent);
+}
 
-  .habit-initial {
-    flex-shrink: 0;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 600;
-    opacity: 0.8;
-    background-color: rgba(255, 255, 255, 0.1);
+.habit-name {
+  font-size: 16.5px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--neo-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
-    @include darkTheme() {
-      background-color: rgba(255, 255, 255, 0.15);
-    }
-
-    @include lightTheme() {
-      background-color: rgba(0, 0, 0, 0.1);
-    }
-
-    @media (max-width: 600px) {
-      width: 22px;
-      height: 22px;
-      font-size: 10px;
-    }
-  }
-
-  .habit-name {
-    display: none;
+  @media (max-width: 600px) {
     font-size: 13px;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0; // Allow text to shrink and trigger ellipsis
+  }
+}
 
-    &.visible {
-      display: block;
+// ============================================
+// Streak Indicator - ADHD-optimized motivation
+// ============================================
+.streak-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0;
+  border-radius: 20px;
+  opacity: 0.75;
+  transform: none;
+  transition:
+    opacity 250ms var(--neo-ease),
+    transform 250ms var(--neo-ease-spring);
+
+  &.has-streak {
+    opacity: 0.9;
+  }
+
+  .streak-count {
+    font-family: var(--font-numeric);
+    font-size: 16.5px;
+    font-weight: 700;
+    color: var(--neo-text-muted);
+    min-width: 14px;
+    text-align: center;
+    transition: color 250ms var(--neo-ease);
+  }
+
+  .flame-icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .flame-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .flame-outline {
+    fill: none;
+    stroke: var(--neo-text-muted);
+    stroke-width: 1.5;
+    opacity: 0.5;
+    transition:
+      stroke 250ms var(--neo-ease),
+      opacity 250ms var(--neo-ease);
+  }
+
+  .flame-fill {
+    fill: var(--neo-text-muted);
+    opacity: 0;
+    transform: scale(0.5);
+    transform-origin: center bottom;
+    transition:
+      fill 300ms var(--neo-ease),
+      opacity 300ms var(--neo-ease),
+      transform 400ms var(--neo-ease-spring);
+  }
+
+  // Today complete - flame fills with accent color
+  &.today-complete {
+    opacity: 1;
+
+    .streak-count {
+      color: var(--habit-accent, var(--neo-accent-blue));
     }
 
-    @media (max-width: 600px) {
-      font-size: 12px;
+    .flame-outline {
+      stroke: var(--habit-accent, var(--neo-accent-blue));
+      opacity: 0.7;
+    }
+
+    .flame-fill {
+      fill: var(--habit-accent, var(--neo-accent-blue));
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  // Level 1: 1-6 days - small ember
+  &.flame-level-1 {
+    .flame-icon {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  // Level 2: 7-13 days - brighter, slightly larger
+  &.flame-level-2 {
+    .flame-icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    &.today-complete .flame-fill {
+      filter: drop-shadow(
+        0 0 4px
+          color-mix(in srgb, var(--habit-accent, var(--neo-accent-blue)) 50%, transparent)
+      );
+    }
+  }
+
+  // Level 3: 14-29 days - glowing
+  &.flame-level-3 {
+    .flame-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    &.today-complete .flame-fill {
+      filter: drop-shadow(
+        0 0 6px
+          color-mix(in srgb, var(--habit-accent, var(--neo-accent-blue)) 60%, transparent)
+      );
+    }
+  }
+
+  // Level 4: 30-59 days - intense glow + subtle pulse
+  &.flame-level-4 {
+    .flame-icon {
+      width: 22px;
+      height: 22px;
+    }
+
+    &.today-complete {
+      .flame-fill {
+        filter: drop-shadow(
+          0 0 8px
+            color-mix(
+              in srgb,
+              var(--habit-accent, var(--neo-accent-blue)) 70%,
+              transparent
+            )
+        );
+        animation: flamePulse 2s ease-in-out infinite;
+      }
+
+      .streak-count {
+        text-shadow: 0 0 8px
+          color-mix(in srgb, var(--habit-accent, var(--neo-accent-blue)) 40%, transparent);
+      }
+    }
+  }
+
+  // Level 5: 60+ days - EPIC flame with strong effects
+  &.flame-level-5 {
+    .flame-icon {
+      width: 24px;
+      height: 24px;
+    }
+
+    &.today-complete {
+      .flame-fill {
+        filter: drop-shadow(
+          0 0 12px
+            color-mix(
+              in srgb,
+              var(--habit-accent, var(--neo-accent-blue)) 80%,
+              transparent
+            )
+        );
+        animation: flamePulseStrong 1.5s ease-in-out infinite;
+      }
+
+      .streak-count {
+        font-size: 14px;
+        text-shadow: 0 0 12px
+          color-mix(in srgb, var(--habit-accent, var(--neo-accent-blue)) 50%, transparent);
+      }
+    }
+  }
+
+  // Not complete today - dim/outline state as gentle nudge
+  &.has-streak:not(.today-complete) {
+    .flame-outline {
+      animation: flameNudge 3s ease-in-out infinite;
     }
   }
 }
 
-.footer-actions {
-  display: flex;
-  justify-content: center;
-  padding: 32px 16px;
-
-  .add-habit-btn {
-    opacity: 0.6;
-    transition: all 0.2s ease;
-    background-color: transparent !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    padding: 2px 16px;
-
-    &:hover {
-      opacity: 1;
-      background-color: rgba(255, 255, 255, 0.05) !important;
-      border: 1px solid rgba(255, 255, 255, 0.4) !important;
-    }
-
-    mat-icon {
-      margin-right: 8px;
-    }
-
-    .mdc-button__label {
-      vertical-align: middle;
-      font-size: 13px;
-    }
+@keyframes flamePulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes flamePulseStrong {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes flameNudge {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+// ============================================
+// Day Cells
+// ============================================
+.habit-days {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
 }
 
 .day-cell {
-  flex: 1 1 0px;
-  min-width: 30px;
-  max-width: 100px;
+  flex: 1;
   display: flex;
   justify-content: center;
   cursor: pointer;
 
-  @media (max-width: 600px) {
-    min-width: 32px;
+  // Today indicator - glowing ring
+  &.is-today .check-circle:not(.is-done) {
+    box-shadow:
+      var(--shadow-pressed),
+      0 0 0 2px
+        color-mix(in srgb, var(--habit-accent, var(--neo-accent-blue)) 40%, transparent),
+      0 0 16px
+        color-mix(in srgb, var(--habit-accent, var(--neo-accent-blue)) 30%, transparent);
+
+    &::after {
+      background: color-mix(
+        in srgb,
+        var(--habit-accent, var(--neo-accent-blue)) 60%,
+        transparent
+      );
+      width: 10px;
+      height: 10px;
+      animation: todayPulse 2s ease-in-out infinite;
+    }
   }
 }
 
+@keyframes todayPulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.8);
+  }
+}
+
+// The magic: Check circles
 .check-circle {
   position: relative;
-  width: 32px;
-  height: 32px;
-  max-width: 90%;
-  aspect-ratio: 1/1;
-
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  border: 1.5px solid rgba(0, 0, 0, 0.2);
+  background: var(--neo-bg);
+  // More visible empty state - inset shadow creates "well" effect
+  box-shadow: var(--shadow-pressed);
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition:
+    transform 180ms var(--neo-ease-spring),
+    background 180ms var(--neo-ease),
+    box-shadow 250ms var(--neo-ease);
 
   @media (max-width: 600px) {
-    width: 30px;
-    height: 30px;
-    min-width: 28px;
-    border-width: 1.2px;
+    width: 36px;
+    height: 36px;
   }
 
-  @include darkTheme() {
-    border-color: rgba(255, 255, 255, 0.15);
+  // Subtle inner indicator for empty state
+  &::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    transition: all 180ms var(--neo-ease);
   }
 
-  @include lightTheme() {
-    border-color: rgba(0, 0, 0, 0.15);
+  // Hover: lift out of the well
+  &:hover:not(.is-done) {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: var(--shadow-raised);
+    background: var(--neo-bg-card);
+
+    &::after {
+      background: rgba(255, 255, 255, 0.15);
+      transform: scale(1.5);
+    }
   }
 
+  // Active press - satisfying click
+  &:active {
+    transform: scale(0.95);
+    box-shadow: var(--shadow-pressed);
+  }
+
+  // Completed state: THE SATISFYING MOMENT
   &.is-done {
-    background-color: var(--c-primary);
-    border-color: var(--c-primary);
-    color: var(--c-contrast);
+    background: var(--habit-accent, var(--neo-accent-blue));
+    box-shadow:
+      0 4px 20px
+        color-mix(in srgb, var(--habit-accent, var(--neo-accent-blue)) 60%, transparent),
+      0 0 0 2px
+        color-mix(in srgb, var(--habit-accent, var(--neo-accent-blue)) 30%, transparent);
+    animation: checkComplete 0.4s var(--neo-ease-spring);
+
+    &::after {
+      display: none;
+    }
+
+    .check-icon {
+      color: #000;
+      animation: checkIconPop 0.3s var(--neo-ease-spring) 0.1s both;
+    }
+
+    .value-text {
+      color: #000;
+      font-weight: 800;
+    }
+
+    &:hover {
+      transform: translateY(-2px) scale(1.08);
+      box-shadow:
+        0 8px 32px
+          color-mix(in srgb, var(--habit-accent, var(--neo-accent-blue)) 70%, transparent),
+        0 0 0 3px
+          color-mix(in srgb, var(--habit-accent, var(--neo-accent-blue)) 40%, transparent);
+    }
   }
+
+  &.has-progress {
+    box-shadow: none;
+    background: var(--neo-bg-card);
+
+    &::after {
+      display: none;
+    }
+  }
+}
+
+// Completion animations
+@keyframes checkComplete {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.2);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes checkIconPop {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+// Progress Ring
+.progress-ring {
+  position: absolute;
+  inset: -1px;
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
+  transform: rotate(-90deg);
+  pointer-events: none;
+
+  .ring-bg {
+    fill: transparent;
+    stroke: rgba(255, 255, 255, 0.06);
+    stroke-width: 2.5;
+  }
+
+  .ring-progress {
+    fill: transparent;
+    stroke: var(--habit-accent, var(--neo-accent-blue));
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.5s var(--neo-ease-out);
+    filter: drop-shadow(0 0 4px var(--habit-accent, var(--neo-accent-blue)));
+  }
+}
+
+.check-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: var(--habit-accent, var(--neo-accent-blue));
+}
+
+.value-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--neo-text-secondary);
+}
+
+// ============================================
+// Add Habit FAB
+// ============================================
+// Shared floating action button styling
+.add-habit-fab,
+.settings-fab {
+  position: fixed;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--neo-radius);
+  background: var(--neo-bg-card);
+  box-shadow: var(--shadow-raised);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  color: var(--neo-icon-color);
+  will-change: transform;
+  transition:
+    transform 180ms var(--neo-ease),
+    background 180ms var(--neo-ease),
+    box-shadow 180ms var(--neo-ease),
+    color 180ms var(--neo-ease);
+  z-index: 100;
 
   mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-
-    @media (max-width: 600px) {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-  }
-
-  .value-text {
-    font-size: 9px;
-    font-weight: 600;
+    font-size: 26px;
+    width: 26px;
+    height: 26px;
+    will-change: transform;
+    transition: transform 180ms var(--neo-ease);
     line-height: 1;
+    transform-origin: center;
+  }
 
-    @media (max-width: 600px) {
-      font-size: 9px;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-raised-strong);
+    color: var(--neo-icon-active);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: var(--shadow-pressed);
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--neo-text-color) 18%, transparent);
+    outline-offset: 2px;
+  }
+}
+
+.add-habit-fab {
+  bottom: 32px;
+  right: 32px;
+}
+
+.settings-fab {
+  top: 32px;
+  right: 32px;
+}
+
+// ============================================
+// Responsive
+// ============================================
+@media (max-width: 600px) {
+  :host {
+    padding: 16px 8px;
+
+    --ht-streak-col-w: 74px;
+  }
+
+  .habit-tracker-container {
+    gap: 24px;
+    padding: 24px 16px 92px;
+  }
+
+  .navigation-bar {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .nav-left,
+  .nav-right {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .date-range-anim {
+    inline-size: clamp(170px, 70vw, 220px);
+  }
+
+  .day-headers {
+    padding: 0 16px 14px;
+  }
+
+  .habit-pill {
+    padding: 11px 16px;
+    gap: 14px;
+  }
+
+  .streak-pill {
+    padding: 7px 9px;
+  }
+
+  .habit-days {
+    gap: 4px;
+  }
+
+  .section-header {
+    padding: 0 8px;
+  }
+
+  .add-habit-fab {
+    bottom: 20px;
+    right: 20px;
+    width: 54px;
+    height: 54px;
+
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
     }
   }
 
-  .progress-ring {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    transform: rotate(-90deg);
-    pointer-events: none;
-  }
+  .settings-fab {
+    top: 20px;
+    right: 20px;
+    width: 54px;
+    height: 54px;
 
-  .progress-ring-circle {
-    transition: stroke-dashoffset 0.3s;
-    color: var(--c-primary);
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
   }
 }

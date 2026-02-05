@@ -9,6 +9,7 @@ import { HabitNotificationService } from '../habit-notification.service';
 import {
   addSimpleCounter,
   deleteSimpleCounter,
+  updateAllSimpleCounters,
   updateSimpleCounter,
   upsertSimpleCounter,
 } from './simple-counter.actions';
@@ -29,6 +30,7 @@ export class HabitNotificationEffects {
         ofType(
           addSimpleCounter,
           updateSimpleCounter,
+          updateAllSimpleCounters,
           upsertSimpleCounter,
           deleteSimpleCounter,
         ),

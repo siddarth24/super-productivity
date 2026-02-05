@@ -1,0 +1,271 @@
+// Dark Neumorphism Design System
+// Shared neumorphism variables and mixins for consistent styling across components
+
+// ============================================
+// CSS Custom Properties (for use in :host)
+// ============================================
+@mixin neo-variables {
+  // Core palette
+  --neo-bg: #1e1e1e;
+  --neo-bg-elevated: #242424;
+  --neo-shadow-dark: #0a0a0a;
+  --neo-shadow-light: #2a2a2a;
+
+  // Dimensions
+  --neo-blur: 16px;
+  --neo-distance: 6px;
+  --neo-radius: 16px;
+  --neo-radius-lg: 24px;
+  --neo-radius-pill: 50px;
+
+  // Icon colors
+  --neo-icon-color: #6b6b6b;
+  --neo-icon-hover: #8a8a8a;
+  --neo-icon-active: #ffffff;
+
+  // Text colors
+  --neo-text-primary: rgba(255, 255, 255, 0.95);
+  --neo-text-secondary: rgba(255, 255, 255, 0.7);
+  --neo-text-muted: rgba(255, 255, 255, 0.5);
+
+  // Animation timing
+  --neo-ease: cubic-bezier(0.2, 0.85, 0.2, 1);
+  --neo-ease-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --neo-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --neo-duration: 180ms;
+  --neo-duration-slow: 280ms;
+
+  // Pre-composed shadows
+  --neo-shadow-raised:
+    4px 4px 10px var(--neo-shadow-dark), -4px -4px 10px var(--neo-shadow-light);
+  --neo-shadow-raised-lg:
+    6px 6px 16px var(--neo-shadow-dark), -6px -6px 16px var(--neo-shadow-light);
+  --neo-shadow-pressed:
+    inset 3px 3px 8px var(--neo-shadow-dark), inset -3px -3px 8px var(--neo-shadow-light);
+  --neo-shadow-pressed-sm:
+    inset 2px 2px 5px var(--neo-shadow-dark), inset -2px -2px 5px var(--neo-shadow-light);
+
+  // Accent colors (habit-specific)
+  --neo-accent-blue: #4a9eff;
+  --neo-accent-green: #4ade80;
+  --neo-accent-purple: #a78bfa;
+  --neo-accent-orange: #fb923c;
+  --neo-accent-pink: #f472b6;
+  --neo-accent-cyan: #22d3ee;
+  --neo-accent-yellow: #facc15;
+  --neo-accent-red: #f87171;
+}
+
+// ============================================
+// Shadow Mixins
+// ============================================
+@mixin neo-shadow-raised {
+  box-shadow: var(--neo-shadow-raised);
+}
+
+@mixin neo-shadow-raised-lg {
+  box-shadow: var(--neo-shadow-raised-lg);
+}
+
+@mixin neo-shadow-pressed {
+  box-shadow: var(--neo-shadow-pressed);
+}
+
+@mixin neo-shadow-pressed-sm {
+  box-shadow: var(--neo-shadow-pressed-sm);
+}
+
+@mixin neo-shadow-none {
+  box-shadow: none;
+}
+
+// ============================================
+// Element Mixins
+// ============================================
+
+// Raised neumorphic element (button, card)
+@mixin neo-raised($radius: var(--neo-radius)) {
+  background: var(--neo-bg);
+  border: none;
+  border-radius: $radius;
+  @include neo-shadow-raised;
+}
+
+// Pressed/inset neumorphic element
+@mixin neo-pressed($radius: var(--neo-radius)) {
+  background: var(--neo-bg);
+  border: none;
+  border-radius: $radius;
+  @include neo-shadow-pressed;
+}
+
+// Flat neumorphic element (base state before interaction)
+@mixin neo-flat($radius: var(--neo-radius)) {
+  background: var(--neo-bg);
+  border: none;
+  border-radius: $radius;
+  box-shadow: none;
+}
+
+// Elevated card-like element
+@mixin neo-card($radius: var(--neo-radius-lg)) {
+  background: var(--neo-bg-elevated);
+  border: none;
+  border-radius: $radius;
+  @include neo-shadow-raised-lg;
+}
+
+// ============================================
+// Interactive Element Mixins
+// ============================================
+
+// Standard button transitions
+@mixin neo-button-transitions {
+  transition:
+    transform var(--neo-duration) var(--neo-ease),
+    box-shadow var(--neo-duration) var(--neo-ease-soft),
+    background var(--neo-duration) var(--neo-ease-soft);
+}
+
+// Interactive raised button
+@mixin neo-button {
+  @include neo-flat;
+  @include neo-button-transitions;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-1px);
+    @include neo-shadow-raised;
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+    @include neo-shadow-pressed;
+  }
+}
+
+// Toggle button (off = flat, on = raised)
+@mixin neo-toggle {
+  @include neo-flat;
+  @include neo-button-transitions;
+  cursor: pointer;
+
+  &:hover:not(.active) {
+    transform: translateY(-1px);
+    box-shadow:
+      2px 2px 6px var(--neo-shadow-dark),
+      -2px -2px 6px var(--neo-shadow-light);
+  }
+
+  &.active {
+    transform: translateY(-2px) scale(1.02);
+    @include neo-shadow-raised;
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+    @include neo-shadow-pressed;
+  }
+}
+
+// Checkable cell (like habit day cell)
+@mixin neo-check-cell($size: 40px) {
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+  @include neo-flat(50%);
+  @include neo-button-transitions;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover:not(.is-done) {
+    transform: scale(1.05);
+    box-shadow:
+      2px 2px 6px var(--neo-shadow-dark),
+      -2px -2px 6px var(--neo-shadow-light);
+  }
+
+  &:active {
+    transform: scale(0.95);
+    @include neo-shadow-pressed-sm;
+  }
+
+  &.is-done {
+    @include neo-shadow-pressed-sm;
+
+    // Accent glow effect on completion
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 50%;
+      background: var(--habit-accent, var(--neo-accent-blue));
+      opacity: 0.15;
+      z-index: -1;
+    }
+  }
+}
+
+// ============================================
+// Pill Container (habit row)
+// ============================================
+@mixin neo-pill {
+  @include neo-card(var(--neo-radius-pill));
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+// ============================================
+// Progress Ring
+// ============================================
+@mixin neo-progress-ring($size: 40px, $stroke-width: 3px) {
+  width: $size;
+  height: $size;
+  transform: rotate(-90deg);
+
+  circle {
+    fill: transparent;
+    stroke-width: $stroke-width;
+    stroke-linecap: round;
+    transition: stroke-dashoffset var(--neo-duration-slow) var(--neo-ease);
+
+    &.bg {
+      stroke: rgba(255, 255, 255, 0.1);
+    }
+
+    &.progress {
+      stroke: var(--habit-accent, var(--neo-accent-blue));
+    }
+  }
+}
+
+// ============================================
+// Focus Card (large single-habit view)
+// ============================================
+@mixin neo-focus-card {
+  @include neo-card(var(--neo-radius-lg));
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  min-height: 300px;
+}
+
+// ============================================
+// Section Header (time-of-day labels)
+// ============================================
+@mixin neo-section-header {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--neo-text-muted);
+  padding: 8px 16px;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}

@@ -1,10 +1,37 @@
 :host {
-  --sidenav-width-expanded: var(--side-nav-width, 260px);
+  --sidenav-width-expanded: 72px;
   --mobile-breakpoint: 768px;
   --sidenav-transition-duration: var(--transition-duration-m, 0.3s);
   --sidenav-transition-timing: var(--ani-standard-timing, cubic-bezier(0.4, 0, 0.2, 1));
   --mat-menu-item-spacing: 4px;
   --sidenav-border-color: var(--separator-color);
+
+  // Dark neumorphism palette (matches black theme)
+  --neo-bg: var(--sidenav-bg, #1e1e1e);
+  --neo-shadow-dark: #0a0a0a;
+  --neo-shadow-light: #2a2a2a;
+  --neo-blur: 16px;
+  --neo-distance: 6px;
+  --neo-radius: 14px;
+  --neo-icon-color: #6b6b6b;
+  --neo-icon-hover: #8a8a8a;
+  --neo-icon-active: #ffffff;
+
+  // Animation tuning for neumorphism interactions
+  --neo-ease: cubic-bezier(0.2, 0.85, 0.2, 1);
+  --neo-ease-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  // Rail backgrounds
+  --sidenav-rail-bg-dark: var(--neo-bg);
+  --sidenav-rail-bg-light: var(--neo-bg);
+  --sidenav-rail-border: transparent;
+  --sidenav-rail-shadow: 4px 0 16px rgba(0, 0, 0, 0.4);
+
+  // Neumorphism shadows (dark theme - subtle depth)
+  --neo-shadow-raised:
+    4px 4px 10px var(--neo-shadow-dark), -4px -4px 10px var(--neo-shadow-light);
+  --neo-shadow-pressed:
+    inset 3px 3px 8px var(--neo-shadow-dark), inset -3px -3px 8px var(--neo-shadow-light);
 
   // Ensure the component itself participates in layout and animates width
   display: block;
@@ -27,27 +54,31 @@
 
 // Mobile menu open button (only shows when menu is closed)
 .mobile-menu-open {
-  display: flex;
   align-items: center;
   justify-content: center;
   position: fixed;
   top: 8px;
   left: 8px;
-  background: var(--sidenav-bg);
-  border: 1px solid var(--sidenav-border-color);
-  border-radius: 8px;
+  background: var(--neo-bg);
+  border: none;
+  border-radius: var(--neo-radius);
   padding: 8px;
   cursor: pointer;
   transition: var(--transition-standard);
-  color: var(--text-color);
+  color: var(--neo-icon-color);
+  box-shadow: var(--neo-shadow-raised);
 
   &:focus,
   &:hover {
-    background: var(--sidenav-hover-bg);
+    background: var(--neo-bg);
+    transform: translateY(-1px);
+    box-shadow:
+      6px 6px 14px var(--neo-shadow-dark),
+      -6px -6px 14px var(--neo-shadow-light);
   }
 
   svg {
-    color: var(--sidenav-text);
+    color: var(--neo-icon-color);
   }
 }
 
@@ -73,14 +104,32 @@
   left: 0;
   bottom: 0;
   width: var(--sidenav-width-expanded);
-  background: var(--sidenav-bg);
-  border-right: 1px solid var(--sidenav-border-color);
+  background: var(--neo-bg);
+  border-right: none;
+  box-shadow: none;
+  border-radius: 0;
   // Default: don't animate width
   transition: none;
   z-index: 1002;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-app-region: no-drag;
+
+  // Normalize Angular Material hover/focus overlays so our custom pill background
+  // is the only background you see for every icon/button.
+  .mat-mdc-focus-indicator::before,
+  .mat-mdc-button-persistent-ripple::before,
+  .mdc-list-item__ripple::before,
+  .mdc-list-item__ripple::after {
+    opacity: 0 !important;
+  }
+
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
 
   // Slight elevation and clear background for overlay/mobile mode is defined in the mobile block below
 
@@ -112,16 +161,16 @@
     -webkit-backdrop-filter: blur(20px) saturate(180%);
   }
 
+  :host-context(.isDarkTheme) & {
+    background: var(--neo-bg);
+    border-right: none;
+    box-shadow: var(--neo-shadow-raised);
+  }
+
   // CompactMode state (desktop)
   &.compactMode {
     scrollbar-width: none;
     scrollbar-gutter: stable both-edges;
-
-    .mode-toggle {
-      right: auto;
-      left: 50%;
-      transform: translateX(-50%);
-    }
   }
 
   // Mobile specific
@@ -153,42 +202,9 @@
   // Note: Theme colors are handled by CSS variables above
 }
 
-// Sidebar toggle button (desktop)
-.mode-toggle {
-  --top: 8px;
-  display: none;
-  position: absolute;
-  top: var(--top);
-  right: 8px;
-  background: transparent;
-  border: 1px solid var(--sidenav-border-color);
-  border-radius: 6px;
-  padding: 6px;
-  cursor: pointer;
-  transition: var(--transition-standard);
-  color: var(--sidenav-text-secondary);
-  -webkit-app-region: no-drag;
-
-  :host-context(.isMac.isElectron) & {
-    top: calc(var(--top) + var(--mac-title-bar-padding, 0px));
-  }
-
-  &.visible {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  &:focus,
-  &:hover {
-    background: var(--sidenav-hover-bg);
-    color: var(--sidenav-text);
-  }
-}
-
 // Navigation list
 .nav-list {
-  --pt: 48px;
+  --pt: 12px;
   list-style: none;
   //padding: 60px var(--s) var(--s2);
   padding: 0;
@@ -198,6 +214,9 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  align-items: center;
+
+  padding-bottom: 16px;
 
   @media (max-width: 600px) {
     padding-top: 0;
@@ -210,6 +229,9 @@
 
 .nav-item {
   margin-bottom: 2px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
   -webkit-app-region: no-drag;
 
   &.has-children {
@@ -220,10 +242,11 @@
 // Separator styling
 .nav-separator {
   height: 1px;
+  width: 26px;
   background: var(--sidenav-border-color);
-  margin: var(--s2) var(--s2);
+  margin: 8px auto;
   border: none;
-  opacity: 1;
+  opacity: 0.6;
   flex-shrink: 0;
   -webkit-app-region: no-drag;
 }

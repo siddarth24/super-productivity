@@ -211,6 +211,38 @@ export const SIMPLE_COUNTER_FORM: ConfigFormSection<SimpleCounterConfig> = {
             },
           },
           {
+            key: 'timeOfDay',
+            type: 'select',
+            templateOptions: {
+              label: T.F.SIMPLE_COUNTER.FORM.L_TIME_OF_DAY,
+              options: [
+                { label: T.F.SIMPLE_COUNTER.FORM.TIME_ANYTIME, value: 'anytime' },
+                { label: T.F.SIMPLE_COUNTER.FORM.TIME_MORNING, value: 'morning' },
+                { label: T.F.SIMPLE_COUNTER.FORM.TIME_AFTERNOON, value: 'afternoon' },
+                { label: T.F.SIMPLE_COUNTER.FORM.TIME_EVENING, value: 'evening' },
+              ],
+              getInitialValue: () => 'anytime',
+            },
+          },
+          {
+            key: 'accentColor',
+            type: 'select',
+            templateOptions: {
+              label: T.F.SIMPLE_COUNTER.FORM.L_ACCENT_COLOR,
+              options: [
+                { label: T.F.SIMPLE_COUNTER.FORM.COLOR_BLUE, value: 'blue' },
+                { label: T.F.SIMPLE_COUNTER.FORM.COLOR_GREEN, value: 'green' },
+                { label: T.F.SIMPLE_COUNTER.FORM.COLOR_PURPLE, value: 'purple' },
+                { label: T.F.SIMPLE_COUNTER.FORM.COLOR_ORANGE, value: 'orange' },
+                { label: T.F.SIMPLE_COUNTER.FORM.COLOR_PINK, value: 'pink' },
+                { label: T.F.SIMPLE_COUNTER.FORM.COLOR_CYAN, value: 'cyan' },
+                { label: T.F.SIMPLE_COUNTER.FORM.COLOR_YELLOW, value: 'yellow' },
+                { label: T.F.SIMPLE_COUNTER.FORM.COLOR_RED, value: 'red' },
+              ],
+              getInitialValue: () => 'blue',
+            },
+          },
+          {
             type: 'checkbox',
             key: 'isHideButton',
             templateOptions: {

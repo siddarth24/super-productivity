@@ -216,6 +216,18 @@
   }
 }
 
+// In compact mode (icon-only rail) we don't want indentation
+// because it makes project/tag icons look misaligned vs the rest.
+:host-context(.compactMode) {
+  .g-multi-btn-wrapper {
+    padding-left: 0 !important;
+  }
+
+  .nav-children {
+    margin-left: 0 !important;
+  }
+}
+
 // CompactMode state behaviors inherited from parent sidenav
 :host-context(.nav-sidenav.compactMode) {
   .g-multi-btn-wrapper {
@@ -238,6 +250,77 @@
         margin: 0 2px;
       }
     }
+  }
+
+  .compact-group-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    margin: 3px auto;
+    border-radius: 14px;
+    overflow: hidden;
+    color: var(--sidenav-text);
+    transition:
+      transform 160ms var(--neo-ease-soft, ease),
+      box-shadow 260ms var(--neo-ease-soft, ease),
+      background 260ms var(--neo-ease-soft, ease),
+      color 160ms var(--neo-ease-soft, ease);
+
+    // Disable Angular Material focus overlay/state layer
+    .mat-mdc-focus-indicator::before {
+      opacity: 0 !important;
+    }
+
+    &:hover,
+    &:focus {
+      background: var(--sidenav-hover-bg);
+      transform: translateY(-1px) scale(1.04);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow:
+        0 10px 24px rgba(0, 0, 0, 0.22),
+        0 0 0 2px rgba(255, 255, 255, 0.14);
+    }
+  }
+
+  :host-context(.isDarkTheme) {
+    .compact-group-toggle {
+      background: var(--neo-bg);
+      box-shadow: var(--neo-shadow-raised);
+
+      &:hover,
+      &:focus {
+        background: var(--neo-bg);
+        transform: translateY(-2px) scale(1.04);
+        box-shadow:
+          calc(var(--neo-distance) * 1px + 2px) calc(var(--neo-distance) * 1px + 2px)
+            calc(var(--neo-blur) + 2px) var(--neo-shadow-dark),
+          calc(var(--neo-distance) * -1px - 2px) calc(var(--neo-distance) * -1px - 2px)
+            calc(var(--neo-blur) + 2px) var(--neo-shadow-light);
+      }
+
+      &:active {
+        transform: scale(1.02);
+        box-shadow: var(--neo-shadow-pressed);
+      }
+
+      &:focus-visible {
+        box-shadow:
+          var(--neo-shadow-pressed),
+          0 0 0 2px rgba(255, 255, 255, 0.14);
+      }
+    }
+  }
+
+  .compact-group-icon {
+    font-size: 18px;
+    width: 20px;
+    height: 20px;
   }
 
   // Angular animations will handle expand/collapse behavior

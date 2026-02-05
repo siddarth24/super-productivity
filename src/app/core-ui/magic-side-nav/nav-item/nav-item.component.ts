@@ -155,6 +155,13 @@ export class NavItemComponent {
     if (this.mode() !== 'work') {
       return null;
     }
+
+    // Compact mode uses an icon-only rail; keep icons monochrome there
+    // so work-context icons match the rest of the nav.
+    if (!this.showLabels()) {
+      return null;
+    }
+
     const wc = this.workContext();
     const wcType = this.type();
     if (!wc || !wcType) {

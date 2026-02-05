@@ -46,30 +46,6 @@
     swipeGesture
     [swipeEnabled]="swipeEnabled()"
   >
-    <!-- Desktop Toggle Button (inside sidenav) -->
-    @if (!isMobile()) {
-      <button
-        class="mode-toggle"
-        [class.visible]="!isMobile()"
-        (click)="toggleSideNavMode()"
-        [attr.aria-label]="
-          isFullMode() ? 'Switch to compact mode' : 'Switch to full mode'
-        "
-        [attr.aria-expanded]="isFullMode()"
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path [attr.d]="isFullMode() ? 'M13 4l-6 6 6 6' : 'M7 4l6 6-6 6'" />
-        </svg>
-      </button>
-    }
-
     <!-- Navigation Items -->
     <ul
       class="nav-list"
@@ -184,15 +160,4 @@
       }
     </ul>
   </nav>
-}
-
-<!-- Resize Handle (moved outside scrolling container) -->
-@if (config().resizable && !isMobile()) {
-  <div
-    class="resize-handle position-left"
-    [class.compactMode-handle]="!isFullMode()"
-    (mousedown)="onResizeStart($event)"
-    [attr.aria-label]="'Resize sidenav'"
-    role="separator"
-  ></div>
 }

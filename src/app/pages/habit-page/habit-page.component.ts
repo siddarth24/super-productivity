@@ -16,10 +16,14 @@ import { TranslateModule } from '@ngx-translate/core';
   `,
   styles: [
     `
+      :host {
+        display: block;
+        min-height: 100%;
+      }
+
       .page-wrapper {
-        padding: 16px;
-        max-width: 1000px;
-        margin: 0 auto;
+        padding: 0;
+        min-height: 100%;
       }
     `,
   ],

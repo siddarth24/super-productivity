@@ -38,12 +38,6 @@ export interface SimpleCounterCfgFields {
   timeOfDay?: HabitTimeOfDay;
   accentColor?: HabitAccentColor;
 
-  // notification configuration
-  notificationEnabled?: boolean;
-  notificationDays?: { [key: number]: boolean }; // 0=Sun, 1=Mon, etc.
-  notificationTimes?: string[]; // Array of "HH:MM" strings
-  notificationSound?: string; // Sound file name from NOTIFICATION_SOUNDS
-
   // adv cfg
   // repeated countdown reminder
   countdownDuration?: number;

@@ -20,11 +20,7 @@ import { SIMPLE_COUNTER_FORM } from '../../config/form-cfgs/simple-counter-form.
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
-import {
-  DEFAULT_NOTIFICATION_SOUND,
-  EMPTY_SIMPLE_COUNTER,
-} from '../simple-counter.const';
-import { normalizeSimpleCounterSettings } from '../simple-counter-normalize.util';
+import { EMPTY_SIMPLE_COUNTER } from '../simple-counter.const';
 import { SimpleCounterService } from '../simple-counter.service';
 
 @Component({
@@ -107,30 +103,58 @@ export class DialogSimpleCounterEditSettingsComponent {
       icon: counter.icon,
       type: counter.type,
       isTrackStreaks: counter.isTrackStreaks,
-      streakMinValue: counter.streakMinValue ?? EMPTY_SIMPLE_COUNTER.streakMinValue,
+      streakMinValue: counter.streakMinValue,
       streakMode: counter.streakMode || 'specific-days',
       streakWeekDays: counter.streakWeekDays
         ? { ...counter.streakWeekDays }
         : counter.isTrackStreaks
           ? { ...EMPTY_SIMPLE_COUNTER.streakWeekDays }
           : undefined,
-      streakWeeklyFrequency: counter.streakWeeklyFrequency ?? 3,
+      streakWeeklyFrequency: counter.streakWeeklyFrequency,
       countdownDuration: counter.countdownDuration,
       timeOfDay: counter.timeOfDay || 'anytime',
       accentColor: counter.accentColor || 'blue',
-      notificationEnabled: counter.notificationEnabled ?? false,
-      notificationDays: counter.notificationDays
-        ? { ...counter.notificationDays }
-        : { ...EMPTY_SIMPLE_COUNTER.notificationDays },
-      notificationTimes: counter.notificationTimes ? [...counter.notificationTimes] : [],
-      notificationSound: counter.notificationSound ?? DEFAULT_NOTIFICATION_SOUND,
     };
   }
 
   private _normalizeSettings(
     settings: SimpleCounterCfgFields,
   ): Partial<SimpleCounterCopy> {
-    return normalizeSimpleCounterSettings(settings);
+    const normalized: Partial<SimpleCounterCopy> = {
+      title: settings.title,
+      isEnabled: settings.isEnabled,
+      isHideButton: settings.isHideButton,
+      icon: settings.icon,
+      type: settings.type,
+      isTrackStreaks: settings.isTrackStreaks,
+      streakMinValue: settings.streakMinValue,
+      streakMode: settings.streakMode || 'specific-days',
+      streakWeekDays: settings.streakWeekDays
+        ? { ...settings.streakWeekDays }
+        : settings.isTrackStreaks
+          ? { ...EMPTY_SIMPLE_COUNTER.streakWeekDays }
+          : undefined,
+      streakWeeklyFrequency: settings.streakWeeklyFrequency,
+      countdownDuration: settings.countdownDuration ?? undefined,
+      timeOfDay: settings.timeOfDay || 'anytime',
+      accentColor: settings.accentColor || 'blue',
+    };
+
+    if (!normalized.isTrackStreaks) {
+      normalized.streakWeekDays = undefined;
+      normalized.streakMinValue = undefined;
+      normalized.streakMode = undefined;
+      normalized.streakWeeklyFrequency = undefined;
+    }
+
+    if (
+      normalized.type !== SimpleCounterType.RepeatedCountdownReminder &&
+      normalized.countdownDuration
+    ) {
+      normalized.countdownDuration = undefined;
+    }
+
+    return normalized;
   }
 
   private _cloneSettings(settings: SimpleCounterCfgFields): SimpleCounterCfgFields {
@@ -144,12 +168,6 @@ export class DialogSimpleCounterEditSettingsComponent {
           : undefined,
       timeOfDay: settings.timeOfDay || 'anytime',
       accentColor: settings.accentColor || 'blue',
-      notificationDays: settings.notificationDays
-        ? { ...settings.notificationDays }
-        : { ...EMPTY_SIMPLE_COUNTER.notificationDays },
-      notificationTimes: settings.notificationTimes
-        ? [...settings.notificationTimes]
-        : [],
     };
   }
 }

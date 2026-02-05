@@ -12,6 +12,9 @@
   min-height: 100vh;
   // mobile viewport bug fix
   min-height: -webkit-fill-available;
+
+  // Unify colors between sidenav and the curved main-content corners
+  --shell-sidenav-bg: var(--sidenav-bg, var(--bg));
 }
 
 .main-content {
@@ -20,13 +23,40 @@
   flex-direction: column;
   min-width: 0; // Prevent flex item from growing beyond container
   overflow: hidden;
+  position: relative;
+  background: var(--bg-slightly-lighter, var(--bg));
+  border-radius: 16px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  margin-right: 8px;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 16px;
+    height: 16px;
+    background: var(--shell-sidenav-bg);
+    pointer-events: none;
+  }
+
+  &::before {
+    top: 0;
+    border-top-left-radius: 16px;
+  }
+
+  &::after {
+    bottom: 0;
+    border-bottom-left-radius: 16px;
+  }
 }
 
 // Mobile bottom nav spacing
 .has-mobile-bottom-nav {
   @include mq(xs, max) {
     .main-content {
-      padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) / 2);
+      padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
     }
   }
 }
@@ -39,7 +69,16 @@
   }
 
   magic-side-nav {
-    ::ng-deep .nav-sidenav {
+    --neo-bg: var(--shell-sidenav-bg);
+
+    // The sidenav has a right-side shadow that spills onto the main content.
+    // This makes the rounded corner look like a different color.
+    ::ng-deep .nav-sidenav:not(.mobile) {
+      box-shadow: none !important;
+      border-right: 1px solid var(--separator-color);
+    }
+
+    ::ng-deep .nav-sidebar {
       position: relative !important;
       top: auto !important;
       left: auto !important;
@@ -89,10 +128,6 @@
       overflow: hidden;
     }
   }
-}
-
-.backdrop {
-  // global styles in backdrop.scss
 }
 
 add-task-bar {
