@@ -112,6 +112,8 @@ export class DialogSimpleCounterEditSettingsComponent {
           : undefined,
       streakWeeklyFrequency: counter.streakWeeklyFrequency,
       countdownDuration: counter.countdownDuration,
+      timeOfDay: counter.timeOfDay || 'anytime',
+      accentColor: counter.accentColor || 'blue',
     };
   }
 
@@ -134,6 +136,8 @@ export class DialogSimpleCounterEditSettingsComponent {
           : undefined,
       streakWeeklyFrequency: settings.streakWeeklyFrequency,
       countdownDuration: settings.countdownDuration ?? undefined,
+      timeOfDay: settings.timeOfDay || 'anytime',
+      accentColor: settings.accentColor || 'blue',
     };
 
     if (!normalized.isTrackStreaks) {
@@ -162,6 +166,8 @@ export class DialogSimpleCounterEditSettingsComponent {
         : settings.isTrackStreaks
           ? { ...EMPTY_SIMPLE_COUNTER.streakWeekDays }
           : undefined,
+      timeOfDay: settings.timeOfDay || 'anytime',
+      accentColor: settings.accentColor || 'blue',
     };
   }
 }

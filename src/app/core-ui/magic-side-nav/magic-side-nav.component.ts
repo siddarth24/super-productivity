@@ -19,7 +19,7 @@ import { NavListTreeComponent } from './nav-list/nav-list-tree.component';
 import { NavItem } from './magic-side-nav.model';
 import { LS } from '../../core/persistence/storage-keys.const';
 import { MagicNavConfigService } from './magic-nav-config.service';
-import { lsSetItem, readBoolLS, readNumberLSBounded } from '../../util/ls-util';
+import { lsSetItem } from '../../util/ls-util';
 import { MatMenuModule } from '@angular/material/menu';
 import { NavMatMenuComponent } from './nav-mat-menu/nav-mat-menu.component';
 import { TaskService } from '../../features/tasks/task.service';
@@ -36,7 +36,7 @@ import { WorkContextType } from '../../features/work-context/work-context.model'
 import { HISTORY_STATE } from '../../app.constants';
 import { SwipeDirective } from '../../ui/swipe-gesture/swipe.directive';
 
-const COLLAPSED_WIDTH = 64;
+const COLLAPSED_WIDTH = 72;
 const MOBILE_NAV_WIDTH = 300;
 const FOCUS_DELAY_MS = 10;
 
@@ -187,28 +187,9 @@ export class MagicSideNavComponent implements OnInit, OnDestroy, AfterViewInit {
     // Check screen size first to set mobile state
     this._checkScreenSize();
 
-    // Persisted state is only relevant for desktop when bottom nav is not visible
-    const isBottomNavVisible = this._layoutService.isXs();
-    if (!isBottomNavVisible) {
-      // Load saved fullMode/compactMode state
-      const initialFullMode = readBoolLS(
-        LS.NAV_SIDEBAR_EXPANDED,
-        this.config().fullModeByDefault,
-      );
-      this.isFullMode.set(initialFullMode);
-
-      // Load saved width from localStorage or default
-      const bounded = readNumberLSBounded(
-        LS.NAV_SIDEBAR_WIDTH,
-        this.config().minWidth,
-        this.config().maxWidth,
-      );
-      this.currentWidth.set(bounded ?? this.config().defaultWidth);
-    } else {
-      // Use defaults for mobile; do not apply persisted desktop state
-      this.isFullMode.set(this.config().fullModeByDefault);
-      this.currentWidth.set(this.config().defaultWidth);
-    }
+    // Force compact mode on desktop; allow full labels on mobile overlay
+    this.isFullMode.set(this.isMobile());
+    this.currentWidth.set(this.config().defaultWidth);
   }
 
   ngAfterViewInit(): void {
@@ -452,17 +433,7 @@ export class MagicSideNavComponent implements OnInit, OnDestroy, AfterViewInit {
       return [];
     }
 
-    // Get the sidenav toggle button first (if visible)
-    const toggleButton = nav.querySelector('.mode-toggle') as HTMLElement;
     const focusableElements: HTMLElement[] = [];
-
-    if (toggleButton) {
-      const styles = window.getComputedStyle(toggleButton);
-      if (styles.display !== 'none' && styles.visibility !== 'hidden') {
-        toggleButton.setAttribute('tabindex', '0');
-        focusableElements.push(toggleButton);
-      }
-    }
 
     // Get all nav-link elements (these are the actual clickable items)
     // Also get any mat-menu-item elements which are used for nav items
@@ -503,10 +474,7 @@ export class MagicSideNavComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     });
 
-    // Combine toggle button (if present) with nav list elements
-    const allFocusable = [...focusableElements, ...navListElements];
-
-    return allFocusable;
+    return navListElements.length ? navListElements : focusableElements;
   }
 
   private _handleEscapeKey(event: KeyboardEvent): void {

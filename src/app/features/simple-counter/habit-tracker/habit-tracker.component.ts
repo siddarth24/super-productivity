@@ -2,14 +2,18 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   inject,
   input,
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { SimpleCounter, SimpleCounterType } from '../simple-counter.model';
+import {
+  HabitAccentColor,
+  HabitTimeOfDay,
+  SimpleCounter,
+  SimpleCounterType,
+} from '../simple-counter.model';
 import { SimpleCounterService } from '../simple-counter.service';
 import { DateService } from '../../../core/date/date.service';
 import { T } from '../../../t.const';
@@ -20,20 +24,18 @@ import { MatDialog } from '@angular/material/dialog';
 import { DialogSimpleCounterEditComponent } from '../dialog-simple-counter-edit/dialog-simple-counter-edit.component';
 import { DialogSimpleCounterEditSettingsComponent } from '../dialog-simple-counter-edit-settings/dialog-simple-counter-edit-settings.component';
 import { EMPTY_SIMPLE_COUNTER } from '../simple-counter.const';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { loadFromRealLs, saveToRealLs } from '../../../core/persistence/local-storage';
-import { LS } from '../../../core/persistence/storage-keys.const';
+
+interface HabitGroup {
+  timeOfDay: HabitTimeOfDay;
+  label: string;
+  icon: string;
+  habits: SimpleCounter[];
+}
 
 @Component({
   selector: 'habit-tracker',
   standalone: true,
-  imports: [
-    CommonModule,
-    TranslateModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTooltipModule,
-  ],
+  imports: [CommonModule, TranslateModule, MatButtonModule, MatIconModule],
   templateUrl: './habit-tracker.component.html',
   styleUrl: './habit-tracker.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,52 +52,97 @@ export class HabitTrackerComponent {
   SimpleCounterType = SimpleCounterType;
 
   dayOffset = signal(0);
-  isCompactView = signal(false);
 
-  constructor() {
-    // Load initial compact view state from localStorage
-    const savedCompactView = loadFromRealLs(LS.HABIT_TRACKER_COMPACT_VIEW) as
-      | { value: boolean }
-      | undefined;
-    if (savedCompactView && typeof savedCompactView.value === 'boolean') {
-      this.isCompactView.set(savedCompactView.value);
-    }
+  private _weekTransitionMs = 520;
+  weekTransition = signal<null | {
+    from: number;
+    to: number;
+    dir: 'prev' | 'next';
+    animate: boolean;
+  }>(null);
 
-    // Persist compact view state changes to localStorage
-    effect(() => {
-      saveToRealLs(LS.HABIT_TRACKER_COMPACT_VIEW, { value: this.isCompactView() });
-    });
-  }
+  isWeekTransitioning = computed(() => this.weekTransition() !== null);
 
-  days = computed(() => {
-    const days: string[] = [];
+  days = computed(() => this.daysForOffset(this.dayOffset()));
+
+  daysForOffset(offset: number): string[] {
+    const result: string[] = [];
     const today = new Date();
-    const offset = this.dayOffset();
-    const daysToShow = this.isCompactView() ? 3 : 6; // Show 4 days (0-3) or 7 days (0-6)
+    const daysToShow = 6; // Always show 7 days (0-6)
     for (let i = daysToShow; i >= 0; i--) {
       const d = new Date();
       d.setDate(today.getDate() - i + offset);
-      days.push(this._dateService.todayStr(d));
+      result.push(this._dateService.todayStr(d));
     }
-    return days;
+    return result;
+  }
+
+  // Group habits by time of day
+  habitGroups = computed((): HabitGroup[] => {
+    const counters = this.simpleCounters();
+    const groups: HabitGroup[] = [
+      { timeOfDay: 'morning', label: 'Morning', icon: 'wb_sunny', habits: [] },
+      { timeOfDay: 'afternoon', label: 'Afternoon', icon: 'wb_cloudy', habits: [] },
+      { timeOfDay: 'evening', label: 'Evening', icon: 'nights_stay', habits: [] },
+      { timeOfDay: 'anytime', label: 'Anytime', icon: 'schedule', habits: [] },
+    ];
+
+    for (const counter of counters) {
+      const timeOfDay = counter.timeOfDay || 'anytime';
+      const group = groups.find((g) => g.timeOfDay === timeOfDay);
+      if (group) {
+        group.habits.push(counter);
+      }
+    }
+
+    // Only return groups that have habits
+    return groups.filter((g) => g.habits.length > 0);
   });
 
+  private _animateToOffset(targetOffset: number): void {
+    if (this.weekTransition()) {
+      return;
+    }
+
+    const from = this.dayOffset();
+    const to = targetOffset;
+
+    if (from === to) {
+      return;
+    }
+
+    this.weekTransition.set({
+      from,
+      to,
+      dir: to > from ? 'next' : 'prev',
+      animate: false,
+    });
+
+    // Trigger CSS transitions reliably by switching to "animate" on next frame.
+    window.requestAnimationFrame(() => {
+      const tr = this.weekTransition();
+      if (!tr || tr.from !== from || tr.to !== to) {
+        return;
+      }
+      this.weekTransition.set({ ...tr, animate: true });
+    });
+
+    window.setTimeout(() => {
+      this.dayOffset.set(to);
+      this.weekTransition.set(null);
+    }, this._weekTransitionMs);
+  }
+
   prevWeek(): void {
-    const step = this.isCompactView() ? 4 : 7;
-    this.dayOffset.update((offset) => offset - step);
+    this._animateToOffset(this.dayOffset() - 7);
   }
 
   nextWeek(): void {
-    const step = this.isCompactView() ? 4 : 7;
-    this.dayOffset.update((offset) => Math.min(0, offset + step));
+    this._animateToOffset(Math.min(0, this.dayOffset() + 7));
   }
 
   resetToToday(): void {
-    this.dayOffset.set(0);
-  }
-
-  toggleCompactView(): void {
-    this.isCompactView.update((compact) => !compact);
+    this._animateToOffset(0);
   }
 
   dateRangeLabel = computed(() => {
@@ -111,9 +158,48 @@ export class HabitTrackerComponent {
     return `${firstStr} - ${lastStr}`;
   });
 
+  dateRangeLabelForOffset(offset: number): string {
+    const days = this.daysForOffset(offset);
+    if (days.length === 0) return '';
+    const first = this.parseDateLocal(days[0]);
+    const last = this.parseDateLocal(days[days.length - 1]);
+
+    const formatOptions: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+    const firstStr = first.toLocaleDateString(undefined, formatOptions);
+    const lastStr = last.toLocaleDateString(undefined, formatOptions);
+
+    return `${firstStr} - ${lastStr}`;
+  }
+
+  shouldShowTodayBtn(): boolean {
+    const tr = this.weekTransition();
+    if (tr) {
+      return tr.to !== 0;
+    }
+    return this.dayOffset() !== 0;
+  }
+
   parseDateLocal(dateStr: string): Date {
     const [year, month, day] = dateStr.split('-').map(Number);
     return new Date(year, month - 1, day);
+  }
+
+  isToday(dateStr: string): boolean {
+    return dateStr === this._dateService.todayStr();
+  }
+
+  getAccentCssVar(color: HabitAccentColor | undefined): string {
+    const colorMap: Record<HabitAccentColor, string> = {
+      blue: 'var(--neo-accent-blue)',
+      green: 'var(--neo-accent-green)',
+      purple: 'var(--neo-accent-purple)',
+      orange: 'var(--neo-accent-orange)',
+      pink: 'var(--neo-accent-pink)',
+      cyan: 'var(--neo-accent-cyan)',
+      yellow: 'var(--neo-accent-yellow)',
+      red: 'var(--neo-accent-red)',
+    };
+    return colorMap[color || 'blue'];
   }
 
   private _longPressTimer?: number;
@@ -143,7 +229,21 @@ export class HabitTrackerComponent {
 
   onCellContextMenu(event: MouseEvent, counter: SimpleCounter, date: string): void {
     event.preventDefault(); // Prevent default browser context menu
-    this.openEditDialog(counter, date);
+
+    // Right-click decrements (allows untoggling accidental clicks)
+    if (
+      counter.type === SimpleCounterType.ClickCounter ||
+      counter.type === SimpleCounterType.RepeatedCountdownReminder
+    ) {
+      const currentValue = this.getVal(counter, date);
+      if (currentValue > 0) {
+        const newVal = currentValue - 1;
+        this._simpleCounterService.setCounterForDate(counter.id, date, newVal);
+      }
+    } else {
+      // For StopWatch, right-click still opens dialog
+      this.openEditDialog(counter, date);
+    }
   }
 
   onPressStart(counter: SimpleCounter, date: string): void {
@@ -225,6 +325,67 @@ export class HabitTrackerComponent {
 
     const goal = counter.streakMinValue || 1;
     return Math.min(100, (value / goal) * 100);
+  }
+
+  /**
+   * Calculate current streak for a habit.
+   * Counts consecutive days completed going backwards from today.
+   */
+  getStreak(counter: SimpleCounter): number {
+    const goal = counter.streakMinValue || 1;
+    const today = new Date();
+    let streak = 0;
+
+    // Count consecutive days backwards starting from today
+    for (let i = 0; i < 365; i++) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      const dateStr = this._dateService.todayStr(d);
+      const value = counter.countOnDay[dateStr] || 0;
+
+      if (value >= goal) {
+        streak++;
+      } else {
+        // If today is incomplete, don't break the streak yet -
+        // check if yesterday was complete (allows "in progress" state)
+        if (i === 0) {
+          continue; // Skip today if incomplete, check yesterday
+        }
+        break;
+      }
+    }
+
+    return streak;
+  }
+
+  /**
+   * Get flame level based on streak length (for visual evolution).
+   * 0 = no streak, 1 = 1-6 days, 2 = 7-13 days, 3 = 14-29 days, 4 = 30-59 days, 5 = 60+ days
+   */
+  getFlameLevel(counter: SimpleCounter): number {
+    const streak = this.getStreak(counter);
+    if (streak === 0) return 0;
+    if (streak < 7) return 1;
+    if (streak < 14) return 2;
+    if (streak < 30) return 3;
+    if (streak < 60) return 4;
+    return 5;
+  }
+
+  /**
+   * Check if today's habit is complete (for flame fill state).
+   */
+  isTodayComplete(counter: SimpleCounter): boolean {
+    const todayStr = this._dateService.todayStr();
+    const goal = counter.streakMinValue || 1;
+    return (counter.countOnDay[todayStr] || 0) >= goal;
+  }
+
+  // Calculate stroke-dashoffset for progress ring
+  getProgressOffset(counter: SimpleCounter, day: string, circumference: number): number {
+    const progress = this.getProgress(counter, day);
+    const progressAmount = (circumference * progress) / 100;
+    return circumference - progressAmount;
   }
 
   addHabit(): void {

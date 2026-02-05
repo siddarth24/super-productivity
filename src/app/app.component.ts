@@ -33,7 +33,7 @@ import { LanguageService } from './core/language/language.service';
 import { WorkContextService } from './features/work-context/work-context.service';
 import { ImexViewService } from './imex/imex-meta/imex-view.service';
 import { SyncTriggerService } from './imex/sync/sync-trigger.service';
-import { ActivatedRoute, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map, take } from 'rxjs/operators';
 import { isOnline$ } from './util/is-online';
 import { IS_MOBILE } from './util/is-mobile';
@@ -132,6 +132,22 @@ export class AppComponent implements OnDestroy, AfterViewInit {
   private _document = inject(DOCUMENT, { optional: true });
   private _startupService = inject(StartupService);
   private _keyboardLayoutService = inject(KeyboardLayoutService);
+  private _router = inject(Router);
+
+  // Track current page for conditional header visibility
+  readonly currentPage = toSignal(
+    this._router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map(() => {
+        let route = this._activatedRoute;
+        while (route.firstChild) {
+          route = route.firstChild;
+        }
+        return route.snapshot.data['page'] || '';
+      }),
+    ),
+    { initialValue: '' },
+  );
 
   readonly syncTriggerService = inject(SyncTriggerService);
   readonly imexMetaService = inject(ImexViewService);

@@ -17,6 +17,10 @@ export const EMPTY_SIMPLE_COUNTER: SimpleCounter = {
   streakMode: 'specific-days',
   // eslint-disable-next-line @typescript-eslint/naming-convention
   streakWeekDays: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: false, 0: false },
+
+  // UI customization
+  timeOfDay: 'anytime',
+  accentColor: 'blue',
 };
 
 export const DEFAULT_SIMPLE_COUNTERS: SimpleCounter[] = [
@@ -28,6 +32,8 @@ export const DEFAULT_SIMPLE_COUNTERS: SimpleCounter[] = [
     icon: 'directions_walk',
     isTrackStreaks: true,
     streakMinValue: 30 * 60 * 1000,
+    timeOfDay: 'morning',
+    accentColor: 'green',
   },
   {
     ...EMPTY_SIMPLE_COUNTER,
@@ -37,6 +43,8 @@ export const DEFAULT_SIMPLE_COUNTERS: SimpleCounter[] = [
     icon: 'free_breakfast',
     isTrackStreaks: false,
     streakMinValue: 2,
+    timeOfDay: 'morning',
+    accentColor: 'orange',
   },
   {
     ...EMPTY_SIMPLE_COUNTER,
@@ -47,5 +55,7 @@ export const DEFAULT_SIMPLE_COUNTERS: SimpleCounter[] = [
     countdownDuration: 30 * 60 * 1000,
     isTrackStreaks: true,
     streakMinValue: 8,
+    timeOfDay: 'anytime',
+    accentColor: 'purple',
   },
 ];

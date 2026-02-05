@@ -293,12 +293,77 @@ button[mat-menu-item].nav-link.active {
 :host-context(.nav-sidenav.compactMode) {
   .nav-link {
     justify-content: center;
-    padding: 12px;
+    padding: 0;
+    flex: 0 0 auto;
+    width: 46px;
+    height: 46px;
+    margin: 3px auto;
+    border-radius: var(--neo-radius, 14px);
+    position: relative;
+    box-sizing: border-box;
+    overflow: hidden;
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    contain: paint;
+    transition:
+      transform 180ms var(--neo-ease, ease),
+      background 180ms var(--neo-ease-soft, ease),
+      box-shadow 180ms var(--neo-ease-soft, ease);
+
+    // Flat base styling (no shadow unless active)
+    background: var(--neo-bg);
+    box-shadow: none;
+    color: var(--neo-icon-color);
+
+    // Disable pseudo-element overlays
+    &::before,
+    &::after {
+      display: none !important;
+    }
+
+    // Disable Angular Material overlays completely
+    .mat-mdc-focus-indicator,
+    .mat-mdc-button-persistent-ripple,
+    .mdc-button__ripple {
+      display: none !important;
+    }
+
+    mat-icon {
+      color: var(--neo-icon-color);
+    }
+
+    &.mat-mdc-menu-item {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      min-height: 46px !important;
+      background: var(--neo-bg) !important;
+
+      // Disable Angular Material focus overlay/state layer so our pill is consistent
+      .mat-mdc-focus-indicator::before {
+        opacity: 0 !important;
+      }
+    }
 
     &:focus,
     &:hover {
-      background: var(--sidenav-hover-bg);
-      color: var(--sidenav-text-hover);
+      background: var(--neo-bg);
+      transform: translateY(-1px);
+      box-shadow: none;
+
+      mat-icon {
+        color: var(--neo-icon-hover);
+      }
+    }
+
+    &:active {
+      transform: translateY(0) scale(0.98);
+      box-shadow: var(--neo-shadow-pressed);
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(92, 154, 255, 0.3);
+      outline-offset: 2px;
     }
 
     ::ng-deep .mat-mdc-menu-item-text {
@@ -318,28 +383,52 @@ button[mat-menu-item].nav-link.active {
       display: none !important;
     }
 
+    // Active = raised with neumorphism shadow
     &.active {
-      color: var(--sidenav-active-text) !important;
-      background: var(--sidenav-item-active-bg) !important;
-      box-shadow: var(--whiteframe-shadow-1dp);
+      background: var(--neo-bg) !important;
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: var(--neo-shadow-raised);
 
-      &::after {
-        position: absolute;
-        inset: 4px;
-      }
-
+      mat-icon,
       .nav-icon {
-        color: var(--sidenav-active-text) !important;
+        color: var(--neo-icon-active) !important;
       }
 
       .nav-label {
-        color: var(--sidenav-active-text) !important;
+        color: var(--neo-icon-active) !important;
       }
     }
+
+    // Normalize plugin icons to match mat-icon sizing
+    plugin-icon.nav-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    plugin-icon.nav-icon ::ng-deep .plugin-svg-icon {
+      width: 20px !important;
+      height: 20px !important;
+    }
+
+    plugin-icon.nav-icon ::ng-deep mat-icon {
+      font-size: 18px !important;
+      width: 20px !important;
+      height: 20px !important;
+      line-height: 1 !important;
+    }
+  }
+
+  // Work-context entries use a <button> and are otherwise flex:1 via :host button:first-of-type.
+  // Ensure they don't stretch in compact mode.
+  :host button.nav-link {
+    flex: 0 0 auto;
   }
 
   .nav-icon {
     margin: 0;
+    width: 20px;
+    height: 20px;
+    font-size: 18px;
   }
 
   // Hide the overflow menu button entirely when compactMode
@@ -354,5 +443,26 @@ button[mat-menu-item].nav-link.active {
 
   .task-count {
     display: none;
+  }
+}
+
+@keyframes neo-select-in {
+  0% {
+    transform: translateY(-2px) scale(1.03);
+  }
+  60% {
+    transform: translateY(0) scale(1.01);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host-context(.nav-sidenav.compactMode) {
+    .nav-link {
+      transition: none !important;
+      animation: none !important;
+    }
   }
 }
