@@ -28,6 +28,7 @@ import { PluginBridgeService } from '../../plugins/plugin-bridge.service';
 import { PluginService } from '../../plugins/plugin.service';
 import { lsGetBoolean, lsSetItem } from '../../util/ls-util';
 import { MenuTreeService } from '../../features/menu-tree/menu-tree.service';
+import { Router } from '@angular/router';
 import { MenuTreeViewNode } from '../../features/menu-tree/store/menu-tree.model';
 import { GlobalConfigService } from '../../features/config/global-config.service';
 
@@ -44,6 +45,7 @@ export class MagicNavConfigService {
   private readonly _pluginService = inject(PluginService);
   private readonly _menuTreeService = inject(MenuTreeService);
   private readonly _configService = inject(GlobalConfigService);
+  private readonly _router = inject(Router);
 
   // Simple state signals
   private readonly _isProjectsExpanded = signal(
@@ -307,7 +309,14 @@ export class MagicNavConfigService {
 
   // Simple action handlers
   private _openCreateProject(): void {
-    this._matDialog.open(DialogCreateProjectComponent, { restoreFocus: true });
+    this._matDialog
+      .open(DialogCreateProjectComponent, { restoreFocus: true })
+      .afterClosed()
+      .subscribe((newProjectId: string | undefined) => {
+        if (newProjectId) {
+          this._router.navigate([`project/${newProjectId}/tasks`]);
+        }
+      });
   }
 
   private _openCreateProjectFolder(): void {
