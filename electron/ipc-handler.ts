@@ -5,6 +5,7 @@ import {
   initAppDataIpc,
   initExecIpc,
   initGlobalShortcutsIpc,
+  initHabitNotificationIpc,
   initJiraIpc,
   initSystemIpc,
 } from './ipc-handlers';
@@ -26,4 +27,5 @@ export const initIpcInterfaces = (): void => {
   initGlobalShortcutsIpc();
   initExecIpc();
   initClipboardImageHandlers();
+  initHabitNotificationIpc();
 };

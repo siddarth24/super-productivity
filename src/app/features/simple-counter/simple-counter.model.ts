@@ -6,6 +6,18 @@ export enum SimpleCounterType {
   RepeatedCountdownReminder = 'RepeatedCountdownReminder',
 }
 
+export type HabitTimeOfDay = 'morning' | 'afternoon' | 'evening' | 'anytime';
+
+export type HabitAccentColor =
+  | 'blue'
+  | 'green'
+  | 'purple'
+  | 'orange'
+  | 'pink'
+  | 'cyan'
+  | 'yellow'
+  | 'red';
+
 export interface SimpleCounterCfgFields {
   id: string;
 
@@ -21,6 +33,16 @@ export interface SimpleCounterCfgFields {
   streakMode?: 'specific-days' | 'weekly-frequency';
   streakWeekDays?: { [key: number]: boolean };
   streakWeeklyFrequency?: number;
+
+  // UI customization (new fields for neumorphism redesign)
+  timeOfDay?: HabitTimeOfDay;
+  accentColor?: HabitAccentColor;
+
+  // notification configuration
+  notificationEnabled?: boolean;
+  notificationDays?: { [key: number]: boolean }; // 0=Sun, 1=Mon, etc.
+  notificationTimes?: string[]; // Array of "HH:MM" strings
+  notificationSound?: string; // Sound file name from NOTIFICATION_SOUNDS
 
   // adv cfg
   // repeated countdown reminder

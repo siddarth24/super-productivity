@@ -908,7 +908,14 @@
         "TITLE": "Simple Counters & Habit Tracking",
         "TYPE_CLICK_COUNTER": "Click counter",
         "TYPE_REPEATED_COUNTDOWN": "Repeated countdown",
-        "TYPE_STOPWATCH": "Stopwatch"
+        "TYPE_STOPWATCH": "Stopwatch",
+        "L_NOTIFICATION_ENABLED": "Enable notifications",
+        "L_NOTIFICATION_DAYS": "Notification days",
+        "L_NOTIFICATION_TIMES": "Notification times",
+        "L_NOTIFICATION_SOUND": "Notification sound",
+        "L_ADD_TIME": "Add time",
+        "L_PREVIEW_SOUND": "Preview",
+        "L_NOTIFICATION_SECTION": "Notifications"
       },
       "HABIT_TRACKER": {
         "PREV_WEEK": "Previous week",
@@ -920,7 +927,8 @@
       "S": {
         "GOAL_REACHED_1": "You reached your goal for today!",
         "GOAL_REACHED_2": "Current streak duration: "
-      }
+      },
+      "NOTIFICATION_TITLE": "Habit Reminder: {{title}}"
     },
     "SYNC": {
       "A": {
@@ -2016,6 +2024,7 @@
       "IS_TRAY_SHOW_CURRENT_COUNTDOWN": "Show current countdown in the tray / status menu (macOS only)",
       "IS_USE_CUSTOM_WINDOW_TITLE_BAR": "Use custom title bar (Windows/Linux only)",
       "IS_USE_CUSTOM_WINDOW_TITLE_BAR_HINT": "Requires restart to take effect.",
+      "L_HABIT_SNOOZE_DURATION": "Habit notification snooze duration",
       "START_OF_NEXT_DAY": "Start time of the next day",
       "START_OF_NEXT_DAY_HINT": "Time (hour) from which you want to determine the next day has started. Default is midnight, which is 0.",
       "THEME": "Theme",

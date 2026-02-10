@@ -201,6 +201,16 @@ export interface ElectronAPI {
 
   exec(command: string): void;
 
+  syncHabitNotificationConfig(
+    config: Array<{
+      id: string;
+      title: string;
+      days: { [key: number]: boolean } | undefined;
+      times: string[] | undefined;
+      sound: string | undefined;
+    }>,
+  ): void;
+
   pluginExecNodeScript(
     pluginId: string,
     manifest: PluginManifest,

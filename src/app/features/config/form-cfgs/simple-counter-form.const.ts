@@ -5,7 +5,10 @@ import {
   SimpleCounterType,
 } from '../../simple-counter/simple-counter.model';
 import { T } from '../../../t.const';
-import { EMPTY_SIMPLE_COUNTER } from '../../simple-counter/simple-counter.const';
+import {
+  EMPTY_SIMPLE_COUNTER,
+  NOTIFICATION_SOUNDS,
+} from '../../simple-counter/simple-counter.const';
 import { nanoid } from 'nanoid';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 
@@ -212,6 +215,69 @@ export const SIMPLE_COUNTER_FORM: ConfigFormSection<SimpleCounterConfig> = {
             key: 'isHideButton',
             templateOptions: {
               label: T.F.SIMPLE_COUNTER.FORM.L_IS_HIDE_BUTTON,
+            },
+          },
+          // === NOTIFICATION SECTION ===
+          {
+            type: 'checkbox',
+            key: 'notificationEnabled',
+            templateOptions: {
+              label: T.F.SIMPLE_COUNTER.FORM.L_NOTIFICATION_ENABLED,
+            },
+          },
+          {
+            key: 'notificationDays',
+            type: 'multicheckbox',
+            resetOnHide: false,
+            expressions: {
+              hide: (fCfg: FormlyFieldConfig) => !fCfg.model.notificationEnabled,
+            },
+            templateOptions: {
+              label: T.F.SIMPLE_COUNTER.FORM.L_NOTIFICATION_DAYS,
+              options: [
+                { label: T.F.TASK_REPEAT.F.MONDAY, value: 1 },
+                { label: T.F.TASK_REPEAT.F.TUESDAY, value: 2 },
+                { label: T.F.TASK_REPEAT.F.WEDNESDAY, value: 3 },
+                { label: T.F.TASK_REPEAT.F.THURSDAY, value: 4 },
+                { label: T.F.TASK_REPEAT.F.FRIDAY, value: 5 },
+                { label: T.F.TASK_REPEAT.F.SATURDAY, value: 6 },
+                { label: T.F.TASK_REPEAT.F.SUNDAY, value: 0 },
+              ],
+            },
+          },
+          {
+            key: 'notificationTimes',
+            type: 'repeat',
+            className: 'notification-times',
+            resetOnHide: false,
+            expressions: {
+              hide: (fCfg: FormlyFieldConfig) => !fCfg.model.notificationEnabled,
+            },
+            templateOptions: {
+              addText: T.F.SIMPLE_COUNTER.FORM.L_ADD_TIME,
+              getInitialValue: () => '09:00',
+            },
+            fieldArray: {
+              type: 'input',
+              templateOptions: {
+                type: 'time',
+                label: T.F.SIMPLE_COUNTER.FORM.L_NOTIFICATION_TIMES,
+              },
+            },
+          },
+          {
+            key: 'notificationSound',
+            type: 'select',
+            resetOnHide: false,
+            expressions: {
+              hide: (fCfg: FormlyFieldConfig) => !fCfg.model.notificationEnabled,
+            },
+            templateOptions: {
+              label: T.F.SIMPLE_COUNTER.FORM.L_NOTIFICATION_SOUND,
+              options: NOTIFICATION_SOUNDS.map((s) => ({
+                label: s.label,
+                value: s.value,
+              })),
             },
           },
         ],

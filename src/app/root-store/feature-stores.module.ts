@@ -41,6 +41,7 @@ import {
   simpleCounterReducer,
 } from '../features/simple-counter/store/simple-counter.reducer';
 import { SimpleCounterEffects } from '../features/simple-counter/store/simple-counter.effects';
+import { HabitNotificationEffects } from '../features/simple-counter/store/habit-notification.effects';
 import { TAG_FEATURE_NAME, tagReducer } from '../features/tag/store/tag.reducer';
 import { TagEffects } from '../features/tag/store/tag.effects';
 import {
@@ -132,7 +133,7 @@ import {
     StoreModule.forFeature(menuTreeFeatureKey, menuTreeReducer),
 
     StoreModule.forFeature(SIMPLE_COUNTER_FEATURE_NAME, simpleCounterReducer),
-    EffectsModule.forFeature([SimpleCounterEffects]),
+    EffectsModule.forFeature([SimpleCounterEffects, HabitNotificationEffects]),
 
     StoreModule.forFeature(TAG_FEATURE_NAME, tagReducer),
     EffectsModule.forFeature([TagEffects]),

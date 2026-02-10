@@ -109,5 +109,13 @@ export const MISC_SETTINGS_FORM_CFG: ConfigFormSection<MiscConfig> = {
         ],
       },
     },
+    {
+      key: 'habitNotificationSnoozeDuration',
+      type: 'duration',
+      templateOptions: {
+        label: T.GCF.MISC.L_HABIT_SNOOZE_DURATION,
+        description: T.G.DURATION_DESCRIPTION,
+      },
+    },
   ],
 };

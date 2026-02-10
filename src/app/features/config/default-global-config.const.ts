@@ -56,6 +56,7 @@ export const DEFAULT_GLOBAL_CONFIG: GlobalConfigState = {
     isOverlayIndicatorEnabled: false,
     customTheme: 'default',
     defaultStartPage: 0,
+    habitNotificationSnoozeDuration: 10 * minute,
   },
   shortSyntax: {
     isEnableProject: true,

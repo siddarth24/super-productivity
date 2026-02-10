@@ -20,7 +20,10 @@ import { SIMPLE_COUNTER_FORM } from '../../config/form-cfgs/simple-counter-form.
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
-import { EMPTY_SIMPLE_COUNTER } from '../simple-counter.const';
+import {
+  DEFAULT_NOTIFICATION_SOUND,
+  EMPTY_SIMPLE_COUNTER,
+} from '../simple-counter.const';
 import { SimpleCounterService } from '../simple-counter.service';
 
 @Component({
@@ -112,6 +115,14 @@ export class DialogSimpleCounterEditSettingsComponent {
           : undefined,
       streakWeeklyFrequency: counter.streakWeeklyFrequency ?? 3,
       countdownDuration: counter.countdownDuration,
+      timeOfDay: counter.timeOfDay || 'anytime',
+      accentColor: counter.accentColor || 'blue',
+      notificationEnabled: counter.notificationEnabled ?? false,
+      notificationDays: counter.notificationDays
+        ? { ...counter.notificationDays }
+        : { ...EMPTY_SIMPLE_COUNTER.notificationDays },
+      notificationTimes: counter.notificationTimes ? [...counter.notificationTimes] : [],
+      notificationSound: counter.notificationSound ?? DEFAULT_NOTIFICATION_SOUND,
     };
   }
 
@@ -134,6 +145,16 @@ export class DialogSimpleCounterEditSettingsComponent {
           : undefined,
       streakWeeklyFrequency: settings.streakWeeklyFrequency,
       countdownDuration: settings.countdownDuration ?? undefined,
+      timeOfDay: settings.timeOfDay || 'anytime',
+      accentColor: settings.accentColor || 'blue',
+      notificationEnabled: settings.notificationEnabled ?? false,
+      notificationDays: settings.notificationDays
+        ? { ...settings.notificationDays }
+        : undefined,
+      notificationTimes: settings.notificationTimes
+        ? [...settings.notificationTimes]
+        : undefined,
+      notificationSound: settings.notificationSound ?? undefined,
     };
 
     if (!normalized.isTrackStreaks) {
@@ -150,6 +171,12 @@ export class DialogSimpleCounterEditSettingsComponent {
       normalized.countdownDuration = undefined;
     }
 
+    if (!normalized.notificationEnabled) {
+      normalized.notificationDays = undefined;
+      normalized.notificationTimes = undefined;
+      normalized.notificationSound = undefined;
+    }
+
     return normalized;
   }
 
@@ -162,6 +189,14 @@ export class DialogSimpleCounterEditSettingsComponent {
         : settings.isTrackStreaks
           ? { ...EMPTY_SIMPLE_COUNTER.streakWeekDays }
           : undefined,
+      timeOfDay: settings.timeOfDay || 'anytime',
+      accentColor: settings.accentColor || 'blue',
+      notificationDays: settings.notificationDays
+        ? { ...settings.notificationDays }
+        : { ...EMPTY_SIMPLE_COUNTER.notificationDays },
+      notificationTimes: settings.notificationTimes
+        ? [...settings.notificationTimes]
+        : [],
     };
   }
 }

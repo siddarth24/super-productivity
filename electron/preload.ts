@@ -205,6 +205,9 @@ const ea: ElectronAPI = {
 
   exec: (command: string) => _send('EXEC', command),
 
+  syncHabitNotificationConfig: (config: any[]) =>
+    _send('HABIT_NOTIFICATION_SYNC_CONFIG', config),
+
   // Plugin API
   pluginExecNodeScript: (
     pluginId: string,

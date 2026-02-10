@@ -28,6 +28,8 @@ import {
   processPendingProtocolUrls,
 } from './protocol-handler';
 import { getIsQuiting, setIsLocked } from './shared-state';
+import { installSystemdService } from './habit-notification-helper/installer';
+import * as fs from 'fs';
 
 const ICONS_FOLDER = __dirname + '/assets/icons/';
 const IS_MAC = process.platform === 'darwin';
@@ -156,6 +158,13 @@ export const startApp = (): void => {
   appIN.on('ready', () => initBackupAdapter());
   appIN.on('ready', () => initLocalFileSyncAdapter());
   appIN.on('ready', () => initFullScreenBlocker(IS_DEV));
+
+  // Habit notification helper: create lock file and install systemd service
+  appIN.on('ready', () => {
+    const lockPath = join(app.getPath('userData'), 'app.lock');
+    fs.writeFileSync(lockPath, process.pid.toString());
+    installSystemdService();
+  });
 
   if (!isDisableTray) {
     appIN.on('ready', createIndicator);
@@ -292,6 +301,14 @@ export const startApp = (): void => {
 
   appIN.on('before-quit', () => {
     log('App before-quit: cleaning up resources');
+
+    // Remove lock file for habit notification helper
+    try {
+      const lockPath = join(app.getPath('userData'), 'app.lock');
+      fs.unlinkSync(lockPath);
+    } catch (e) {
+      // Ignore - file may not exist
+    }
 
     // Clean up overlay window before quitting
     destroyOverlayWindow();
