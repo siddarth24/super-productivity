@@ -24,6 +24,7 @@ import {
   DEFAULT_NOTIFICATION_SOUND,
   EMPTY_SIMPLE_COUNTER,
 } from '../simple-counter.const';
+import { normalizeSimpleCounterSettings } from '../simple-counter-normalize.util';
 import { SimpleCounterService } from '../simple-counter.service';
 
 @Component({
@@ -129,55 +130,7 @@ export class DialogSimpleCounterEditSettingsComponent {
   private _normalizeSettings(
     settings: SimpleCounterCfgFields,
   ): Partial<SimpleCounterCopy> {
-    const normalized: Partial<SimpleCounterCopy> = {
-      title: settings.title,
-      isEnabled: settings.isEnabled,
-      isHideButton: settings.isHideButton,
-      icon: settings.icon,
-      type: settings.type,
-      isTrackStreaks: settings.isTrackStreaks,
-      streakMinValue: settings.streakMinValue,
-      streakMode: settings.streakMode || 'specific-days',
-      streakWeekDays: settings.streakWeekDays
-        ? { ...settings.streakWeekDays }
-        : settings.isTrackStreaks
-          ? { ...EMPTY_SIMPLE_COUNTER.streakWeekDays }
-          : undefined,
-      streakWeeklyFrequency: settings.streakWeeklyFrequency,
-      countdownDuration: settings.countdownDuration ?? undefined,
-      timeOfDay: settings.timeOfDay || 'anytime',
-      accentColor: settings.accentColor || 'blue',
-      notificationEnabled: settings.notificationEnabled ?? false,
-      notificationDays: settings.notificationDays
-        ? { ...settings.notificationDays }
-        : undefined,
-      notificationTimes: settings.notificationTimes
-        ? [...settings.notificationTimes]
-        : undefined,
-      notificationSound: settings.notificationSound ?? undefined,
-    };
-
-    if (!normalized.isTrackStreaks) {
-      normalized.streakWeekDays = undefined;
-      normalized.streakMinValue = undefined;
-      normalized.streakMode = undefined;
-      normalized.streakWeeklyFrequency = undefined;
-    }
-
-    if (
-      normalized.type !== SimpleCounterType.RepeatedCountdownReminder &&
-      normalized.countdownDuration
-    ) {
-      normalized.countdownDuration = undefined;
-    }
-
-    if (!normalized.notificationEnabled) {
-      normalized.notificationDays = undefined;
-      normalized.notificationTimes = undefined;
-      normalized.notificationSound = undefined;
-    }
-
-    return normalized;
+    return normalizeSimpleCounterSettings(settings);
   }
 
   private _cloneSettings(settings: SimpleCounterCfgFields): SimpleCounterCfgFields {
