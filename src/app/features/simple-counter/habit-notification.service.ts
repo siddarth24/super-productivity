@@ -119,6 +119,11 @@ export class HabitNotificationService implements OnDestroy {
   }
 
   private _syncToElectron(counters: SimpleCounter[]): void {
+    // Guard: only sync if Electron API is available
+    if (!window.ea?.syncHabitNotificationConfig) {
+      return;
+    }
+
     const enabledCounters = counters.filter(
       (c) =>
         c.notificationEnabled &&
