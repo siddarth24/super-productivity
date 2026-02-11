@@ -31,7 +31,8 @@ export const installSystemdService = (): void => {
     fs.mkdirSync(helperTargetDir, { recursive: true });
 
     // Copy helper files
-    const helperSourceDir = path.join(__dirname, HELPER_DIR_NAME);
+    // __dirname already points to habit-notification-helper directory
+    const helperSourceDir = __dirname;
     const filesToCopy = ['index.js', 'package.json'];
     for (const file of filesToCopy) {
       fs.copyFileSync(path.join(helperSourceDir, file), path.join(helperTargetDir, file));
