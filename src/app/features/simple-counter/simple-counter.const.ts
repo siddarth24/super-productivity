@@ -1,5 +1,20 @@
 import { SimpleCounter, SimpleCounterType } from './simple-counter.model';
 
+export const NOTIFICATION_SOUNDS = [
+  { value: 'copper-bell-ding.mp3', label: 'Copper Bell' },
+  { value: 'ding-small-bell.mp3', label: 'Small Bell' },
+  { value: 'positive.ogg', label: 'Positive' },
+  { value: 'done1.mp3', label: 'Done 1' },
+  { value: 'done2.mp3', label: 'Done 2' },
+  { value: 'done3.mp3', label: 'Done 3' },
+  { value: 'done4.mp3', label: 'Done 4' },
+  { value: 'done5.mp3', label: 'Done 5' },
+  { value: 'done6.mp3', label: 'Done 6' },
+  { value: 'done7.mp3', label: 'Done 7' },
+] as const;
+
+export const DEFAULT_NOTIFICATION_SOUND = 'ding-small-bell.mp3';
+
 export const EMPTY_SIMPLE_COUNTER: SimpleCounter = {
   id: '',
 

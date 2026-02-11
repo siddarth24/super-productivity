@@ -38,6 +38,12 @@ export interface SimpleCounterCfgFields {
   timeOfDay?: HabitTimeOfDay;
   accentColor?: HabitAccentColor;
 
+  // notification settings
+  notificationEnabled?: boolean;
+  notificationSound?: string;
+  notificationDays?: { [key: number]: boolean };
+  notificationTimes?: string[];
+
   // adv cfg
   // repeated countdown reminder
   countdownDuration?: number;

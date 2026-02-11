@@ -123,7 +123,8 @@ export class HabitNotificationService implements OnDestroy {
       (c) =>
         c.notificationEnabled &&
         c.notificationTimes?.length &&
-        Object.values(c.notificationDays || {}).some(Boolean),
+        c.notificationDays &&
+        Object.values(c.notificationDays).some(Boolean),
     );
 
     const config = enabledCounters.map((c) => ({
